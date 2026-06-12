@@ -1,0 +1,3737 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google-site-verification" content="9uj8ysAWbu3tTkCMK7I0sChnIVK78sXW6KWoerWUOxM" />
+<title>SentMoney - আয় করুন প্রতিদিন</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --primary: #6C3EF4;
+    --primary-dark: #4C2BC0;
+    --primary-light: #EDE8FF;
+    --accent: #F4A03E;
+    --accent-light: #FFF4E0;
+    --success: #22C55E;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --bg: #F6F7FB;
+    --card: #FFFFFF;
+    --text: #1A1240;
+    --muted: #7B7A9A;
+    --border: #E8E6F3;
+    --gold: #FFD700;
+    --vip1: #CD7F32;
+    --vip2: #C0C0C0;
+    --vip3: #FFD700;
+    --vip4: #00CED1;
+    --vip5: #FF4500;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ===== AUTH SCREENS ===== */
+  .auth-screen {
+    background: linear-gradient(145deg, #4C2BC0 0%, #6C3EF4 50%, #A078FF 100%);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .auth-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(108,62,244,0.3);
+  }
+
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .auth-logo .logo-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .auth-logo h1 { font-size: 22px; font-weight: 800; color: var(--primary); }
+  .auth-logo p { color: var(--muted); font-size: 13px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--primary);
+    background: white;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 20px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(108,62,244,0.35);
+  }
+
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(108,62,244,0.45); }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-success { background: var(--success); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 8px; }
+
+  /* ===== PASSWORD TOGGLE ===== */
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 46px; }
+  .pw-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  .pw-eye:hover { color: var(--primary); }
+
+  .auth-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .auth-link span { color: var(--primary); font-weight: 600; cursor: pointer; }
+
+  /* ===== OTP ===== */
+  .otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+  .otp-inputs input {
+    width: 48px; height: 52px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    outline: none;
+  }
+  .otp-inputs input:focus { border-color: var(--primary); background: white; }
+
+  /* ===== ACTIVATION ===== */
+  .activation-card {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 16px;
+    padding: 24px;
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .activation-amount { font-size: 36px; font-weight: 800; }
+  .activation-note { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+  .payment-method {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .payment-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: white;
+    cursor: pointer;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .payment-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  .payment-btn .picon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+  /* ===== MAIN APP ===== */
+  .app-container { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* TOP BAR */
+  .topbar {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-logo { font-size: 18px; font-weight: 800; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .notif-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 16px; }
+  .user-avatar { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
+
+  /* CONTENT */
+  .content { flex: 1; padding: 16px; padding-bottom: 80px; overflow-y: auto; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    display: flex;
+    border-top: 2px solid var(--border);
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    gap: 3px;
+    transition: color 0.2s;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  .nav-item .ni { font-size: 20px; }
+  .nav-item.active { color: var(--primary); }
+  .nav-item.active .ni-dot { width: 5px; height: 5px; background: var(--primary); border-radius: 50%; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* BALANCE CARDS */
+  .balance-hero {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, #A078FF 100%);
+    border-radius: 20px;
+    padding: 24px;
+    color: white;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .balance-hero::after {
+    content: '';
+    position: absolute;
+    right: -30px; top: -30px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+  }
+
+  .balance-hero::before {
+    content: '';
+    position: absolute;
+    right: 40px; bottom: -50px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+
+  .balance-label { font-size: 13px; opacity: 0.8; }
+  .balance-amount { font-size: 32px; font-weight: 800; margin: 4px 0; }
+  .balance-sub { font-size: 12px; opacity: 0.7; }
+
+  .vip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+
+  .balance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .balance-mini {
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+
+  .balance-mini .bm-icon { font-size: 22px; margin-bottom: 6px; }
+  .balance-mini .bm-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .balance-mini .bm-amount { font-size: 18px; font-weight: 800; color: var(--text); }
+  .balance-mini .bm-amount span { font-size: 12px; font-weight: 500; color: var(--muted); }
+
+  /* QUICK ACTIONS */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .qa-item {
+    background: white;
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: transform 0.15s;
+  }
+
+  .qa-item:hover { transform: translateY(-2px); }
+  .qa-item .qa-icon { font-size: 24px; margin-bottom: 6px; }
+  .qa-item .qa-label { font-size: 10px; font-weight: 600; color: var(--muted); }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .section-title { font-size: 15px; font-weight: 700; }
+  .see-all { font-size: 12px; color: var(--primary); font-weight: 600; cursor: pointer; }
+
+  /* TASK CARDS */
+  .task-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .task-card:hover { transform: translateX(3px); }
+
+  .task-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 600; }
+  .task-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .task-reward {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .task-amount { font-size: 15px; font-weight: 800; color: var(--success); }
+  .task-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* VIDEO PLAYER */
+  .video-player {
+    background: #000;
+    border-radius: 14px;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .play-btn {
+    width: 64px; height: 64px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .play-btn:hover { transform: scale(1.1); }
+
+  .video-progress {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .video-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+
+  /* REFERRAL */
+  .referral-box {
+    background: linear-gradient(135deg, #1A1240, var(--primary));
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .ref-code {
+    background: rgba(255,255,255,0.15);
+    border: 1px dashed rgba(255,255,255,0.4);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin: 12px 0;
+    cursor: pointer;
+  }
+
+  /* TEAM */
+  .team-stat {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .ts-item {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .ts-num { font-size: 22px; font-weight: 800; color: var(--primary); }
+  .ts-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .member-row:last-child { border-bottom: none; }
+
+  .member-avatar {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 14px;
+  }
+
+  .member-info { flex: 1; }
+  .member-name { font-size: 13px; font-weight: 600; }
+  .member-join { font-size: 11px; color: var(--muted); }
+  .member-earn { font-size: 13px; font-weight: 700; color: var(--success); }
+
+  /* WITHDRAW */
+  .withdraw-note {
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .charge-preview {
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .charge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+
+  .charge-row.total {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 10px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  /* VIP */
+  .vip-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .vip-card {
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vip-card.v1 { background: linear-gradient(135deg, #CD7F32, #E8A96F); }
+  .vip-card.v2 { background: linear-gradient(135deg, #9B9B9B, #C8C8C8); color: #333; }
+  .vip-card.v3 { background: linear-gradient(135deg, #B8860B, #FFD700); color: #333; }
+  .vip-card.v4 { background: linear-gradient(135deg, #008B8B, #00CED1); }
+  .vip-card.v5 { background: linear-gradient(135deg, #CC3300, #FF6347); grid-column: 1 / -1; }
+
+  .vip-crown { font-size: 28px; margin-bottom: 6px; }
+  .vip-name { font-size: 16px; font-weight: 800; }
+  .vip-tasks { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+  .vip-earn { font-size: 18px; font-weight: 800; margin-top: 8px; }
+  .vip-current { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); color: #333; border-radius: 6px; padding: 2px 6px; font-size: 10px; font-weight: 700; }
+
+  /* HISTORY */
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .history-item:last-child { border-bottom: none; }
+
+  .hi-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .hi-info { flex: 1; }
+  .hi-title { font-size: 13px; font-weight: 600; }
+  .hi-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .hi-amount { font-size: 14px; font-weight: 800; }
+
+  /* NOTICE */
+  .notice-bar {
+    background: linear-gradient(90deg, var(--primary-light), var(--accent-light));
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    overflow: hidden;
+  }
+
+  .notice-icon { font-size: 18px; flex-shrink: 0; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 16px;
+    gap: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  /* STATUS BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .badge-success { background: #DCFCE7; color: #15803D; }
+  .badge-warning { background: #FEF9C3; color: #B45309; }
+  .badge-danger { background: #FEE2E2; color: #DC2626; }
+  .badge-info { background: var(--primary-light); color: var(--primary); }
+
+  /* PROFILE */
+  .profile-header {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    border-radius: 20px;
+    padding: 24px;
+    color: white;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .profile-pic {
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(255,255,255,0.3);
+  }
+
+  .profile-name { font-size: 18px; font-weight: 800; }
+  .profile-phone { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+  .profile-menu .pm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: transform 0.15s;
+  }
+
+  .profile-menu .pm-item:hover { transform: translateX(3px); }
+  .profile-menu .pm-icon { font-size: 20px; }
+  .profile-menu .pm-arrow { margin-left: auto; color: var(--muted); }
+
+  /* ===== ADMIN PANEL ===== */
+  .admin-screen { background: #0F0A2A; }
+
+  .admin-topbar {
+    background: linear-gradient(135deg, #1A0A3A, #2D1A6B);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+  }
+
+  .admin-title { font-size: 16px; font-weight: 800; }
+
+  .admin-content { padding: 16px; padding-bottom: 80px; }
+
+  .admin-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .admin-stat {
+    background: linear-gradient(135deg, #1A0A3A, #2D1A6B);
+    border-radius: 14px;
+    padding: 16px;
+    color: white;
+  }
+
+  .admin-stat .as-icon { font-size: 24px; margin-bottom: 8px; }
+  .admin-stat .as-num { font-size: 22px; font-weight: 800; }
+  .admin-stat .as-label { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+  .admin-menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .admin-menu-item {
+    background: linear-gradient(135deg, #1A0A3A, #2D1A6B);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.15s;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .admin-menu-item:hover { transform: translateY(-2px); border-color: var(--primary); }
+  .admin-menu-item .ami-icon { font-size: 26px; margin-bottom: 6px; }
+  .admin-menu-item .ami-label { font-size: 11px; font-weight: 600; }
+
+  .admin-section {
+    background: linear-gradient(135deg, #1A0A3A, #2D1A6B);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    color: white;
+  }
+
+  .admin-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .admin-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 10px;
+  }
+
+  .admin-input::placeholder { color: rgba(255,255,255,0.4); }
+  .admin-input:focus { border-color: var(--primary); }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .admin-table th {
+    background: rgba(255,255,255,0.08);
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .admin-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .admin-user-row td:first-child { font-weight: 600; }
+
+  .admin-bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #1A0A3A;
+    display: flex;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 100;
+  }
+
+  .admin-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.4);
+    font-size: 10px;
+    font-weight: 600;
+    gap: 3px;
+    transition: color 0.2s;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  .admin-nav-item .ni { font-size: 20px; }
+  .admin-nav-item.active { color: var(--accent); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal-sheet {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 24px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close { background: var(--bg); border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 16px; left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--text);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 9999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* DAILY BONUS */
+  .bonus-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .bonus-day {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    border: 2px solid var(--border);
+  }
+
+  .bonus-day.claimed { background: var(--primary-light); border-color: var(--primary); }
+  .bonus-day.today { background: var(--primary); border-color: var(--primary); color: white; }
+  .bonus-day .bd-day { font-size: 9px; color: var(--muted); }
+  .bonus-day.today .bd-day { color: rgba(255,255,255,0.8); }
+  .bonus-day.claimed .bd-day { color: var(--primary); }
+  .bonus-day .bd-coin { font-size: 16px; }
+  .bonus-day .bd-amt { font-size: 10px; font-weight: 700; }
+
+  /* EARN HISTORY PAGE */
+  .earn-tab-content { display: none; }
+  .earn-tab-content.active { display: block; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* UTILITY */
+  .text-center { text-align: center; }
+  .text-muted { color: var(--muted); }
+  .text-success { color: var(--success); }
+  .text-danger { color: var(--danger); }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .flex { display: flex; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  .gap-8 { gap: 8px; }
+  .fw-700 { font-weight: 700; }
+  .fs-12 { font-size: 12px; }
+  .fs-13 { font-size: 13px; }
+  .fs-18 { font-size: 18px; }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  .full-btn { width: 100%; }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row .btn { flex: 1; }
+
+  /* Admin sub-pages */
+  .admin-subpage { display: none; }
+  .admin-subpage.active { display: block; }
+
+  .back-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px;
+  }
+
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { opacity: 0.8; }
+  .setting-val { font-weight: 700; color: var(--accent); }
+
+  .inline-edit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .inline-edit input {
+    width: 90px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .pending-withdraw {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .pw-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .pw-name { font-weight: 700; font-size: 14px; }
+  .pw-amount { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .pw-detail { font-size: 12px; opacity: 0.65; margin-bottom: 10px; }
+  .pw-actions { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================
+     SCREEN 1: REGISTER
+     ============================================================ -->
+<div class="screen auth-screen active" id="screen-register">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">💸</div>
+      <h1>SentMoney</h1>
+      <p>আয় করুন প্রতিদিন</p>
+    </div>
+    <div class="form-group">
+      <label>পূর্ণ নাম</label>
+      <input type="text" id="reg-name" placeholder="আপনার নাম লিখুন">
+    </div>
+    <div class="form-group">
+      <label>মোবাইল নম্বর</label>
+      <input type="tel" id="reg-phone" placeholder="01XXXXXXXXX">
+    </div>
+    <div class="form-group">
+      <label>পাসওয়ার্ড</label>
+      <div class="pw-wrap">
+        <input type="password" id="reg-pass" placeholder="পাসওয়ার্ড দিন">
+        <button type="button" class="pw-eye" onclick="togglePw('reg-pass',this)" title="পাসওয়ার্ড দেখুন">👁</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>রেফারেল কোড (ঐচ্ছিক)</label>
+      <input type="text" id="reg-ref" placeholder="রেফার কোড থাকলে দিন">
+    </div>
+    <button class="btn btn-primary" onclick="doRegister()">📝 রেজিস্ট্রেশন করুন</button>
+    <div class="auth-link">আগে থেকে অ্যাকাউন্ট আছে? <span onclick="showScreen('screen-login')">লগইন করুন</span></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 2: LOGIN
+     ============================================================ -->
+<div class="screen auth-screen" id="screen-login">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">💸</div>
+      <h1>SentMoney</h1>
+      <p>স্বাগতম! আবার লগইন করুন</p>
+    </div>
+    <div class="form-group">
+      <label>মোবাইল নম্বর</label>
+      <input type="tel" id="login-phone" placeholder="01XXXXXXXXX">
+    </div>
+    <div class="form-group">
+      <label>পাসওয়ার্ড</label>
+      <div class="pw-wrap">
+        <input type="password" id="login-pass" placeholder="পাসওয়ার্ড দিন">
+        <button type="button" class="pw-eye" onclick="togglePw('login-pass',this)" title="পাসওয়ার্ড দেখুন">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">🔐 লগইন করুন</button>
+    <div class="auth-link">নতুন ইউজার? <span onclick="showScreen('screen-register')">রেজিস্ট্রেশন করুন</span></div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: ACTIVATION PAYMENT
+     ============================================================ -->
+<div class="screen auth-screen" id="screen-activation">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">💳</div>
+      <h1>অ্যাকাউন্ট অ্যাক্টিভেশন</h1>
+      <p>নিচের নম্বরে পেমেন্ট করুন</p>
+    </div>
+    <div class="activation-card">
+      <div style="font-size:13px; opacity:0.85; margin-bottom:4px">অ্যাক্টিভেশন ফি</div>
+      <div class="activation-amount">৳<span id="act-fee">200</span></div>
+      <div class="activation-note" id="act-pay-method">বিকাশ/নগদ/রকেট</div>
+      <div style="font-size:20px; font-weight:800; margin-top:8px; background:rgba(255,255,255,0.2); border-radius:10px; padding:8px" id="act-pay-number">লোড হচ্ছে...</div>
+      <div style="font-size:12px; opacity:0.8; margin-top:4px">এই নম্বরে সেন্ড মানি করুন</div>
+    </div>
+    <div class="form-group">
+      <label>ট্রানজেকশন আইডি (TxID)</label>
+      <input type="text" id="act-txid" placeholder="ট্রানজেকশন আইডি লিখুন">
+    </div>
+    <button class="btn btn-primary" onclick="submitActivation()">✅ পেমেন্ট নিশ্চিত করুন</button>
+    <div class="auth-link"><span onclick="doLogout()">← লগআউট</span></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: ACTIVATION PENDING
+     ============================================================ -->
+<div class="screen auth-screen" id="screen-activation-pending">
+  <div class="auth-box" style="text-align:center">
+    <div style="font-size:64px; margin-bottom:16px">⏳</div>
+    <h2 style="color:var(--primary); margin-bottom:8px">অনুমোদনের অপেক্ষায়</h2>
+    <p style="color:var(--muted); font-size:14px; margin-bottom:20px">আপনার পেমেন্ট রিকোয়েস্ট পাঠানো হয়েছে। অ্যাডমিন যাচাই করার পর আপনার অ্যাকাউন্ট সক্রিয় হবে।</p>
+    <div style="background:var(--primary-light); border-radius:12px; padding:14px; font-size:13px; color:var(--primary); margin-bottom:20px">
+      📞 সাপোর্ট: 01922490389
+    </div>
+    <button class="btn btn-outline" onclick="doLogout()">🔄 পরে আবার লগইন করুন</button>
+  </div>
+</div>
+<!-- ============================================================
+     SCREEN 5: MAIN APP
+     ============================================================ -->
+<div class="screen" id="screen-app">
+  <div class="app-container">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-logo">💸 SentMoney</div>
+      <div class="topbar-right">
+        <button class="notif-btn" onclick="showToast('কোন নতুন নোটিফিকেশন নেই')">🔔</button>
+        <div class="user-avatar" onclick="switchAppTab('profile')">ম</div>
+      </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content">
+
+      <!-- ===== HOME TAB ===== -->
+      <div id="tab-home" class="app-tab">
+
+        <div class="notice-bar">
+          <span class="notice-icon">📢</span>
+          <span>প্রতিদিন টাস্ক করুন এবং বেশি আয় করুন! VIP আপগ্রেড করলে আরও বেশি টাস্ক পাবেন।</span>
+        </div>
+
+        <!-- BALANCE HERO -->
+        <div class="balance-hero">
+          <div class="balance-label">মোট ব্যালেন্স</div>
+          <div class="balance-amount">৳ <span id="total-balance">0.00</span></div>
+          <div class="balance-sub">আজকের আয়: ৳ <span id="today-earn">0.00</span></div>
+          <div>
+            <div class="vip-badge" id="vip-badge-home" style="background:rgba(255,165,0,0.3); color:#FFD700;">
+              👑 VIP 1
+            </div>
+          </div>
+        </div>
+
+        <!-- BALANCE GRID -->
+        <div class="balance-grid">
+          <div class="balance-mini">
+            <div class="bm-icon">🎬</div>
+            <div class="bm-label">ভিডিও আয়</div>
+            <div class="bm-amount">৳ <span id="video-balance">0.00</span></div>
+          </div>
+          <div class="balance-mini">
+            <div class="bm-icon">📋</div>
+            <div class="bm-label">টাস্ক আয়</div>
+            <div class="bm-amount">৳ <span id="task-balance">0.00</span></div>
+          </div>
+          <div class="balance-mini">
+            <div class="bm-icon">👥</div>
+            <div class="bm-label">রেফার আয়</div>
+            <div class="bm-amount">৳ <span id="refer-balance">0.00</span></div>
+          </div>
+          <div class="balance-mini">
+            <div class="bm-icon">🎁</div>
+            <div class="bm-label">বোনাস আয়</div>
+            <div class="bm-amount">৳ <span id="bonus-balance">0.00</span></div>
+          </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="quick-actions">
+          <div class="qa-item" onclick="switchAppTab('tasks')">
+            <div class="qa-icon">📋</div>
+            <div class="qa-label">টাস্ক</div>
+          </div>
+          <div class="qa-item" onclick="switchAppTab('videos')">
+            <div class="qa-icon">🎬</div>
+            <div class="qa-label">ভিডিও</div>
+          </div>
+          <div class="qa-item" onclick="switchAppTab('withdraw')">
+            <div class="qa-icon">💸</div>
+            <div class="qa-label">উইথড্র</div>
+          </div>
+          <div class="qa-item" onclick="showDailyBonus()">
+            <div class="qa-icon">🎁</div>
+            <div class="qa-label">বোনাস</div>
+          </div>
+          <div class="qa-item" onclick="switchAppTab('referral')">
+            <div class="qa-icon">👥</div>
+            <div class="qa-label">রেফার</div>
+          </div>
+          <div class="qa-item" onclick="switchAppTab('vip')">
+            <div class="qa-icon">👑</div>
+            <div class="qa-label">VIP</div>
+          </div>
+          <div class="qa-item" onclick="switchAppTab('history')">
+            <div class="qa-icon">📊</div>
+            <div class="qa-label">ইতিহাস</div>
+          </div>
+          <div class="qa-item" onclick="switchAppTab('profile')">
+            <div class="qa-icon">👤</div>
+            <div class="qa-label">প্রোফাইল</div>
+          </div>
+        </div>
+
+        <!-- RECENT TASKS -->
+        <div class="section-header">
+          <div class="section-title">🔥 আজকের টাস্ক</div>
+          <div class="see-all" onclick="switchAppTab('tasks')">সব দেখুন</div>
+        </div>
+
+        <div class="task-card" onclick="openTaskModal('form1')">
+          <div class="task-icon" style="background:#EDE8FF">📝</div>
+          <div class="task-info">
+            <div class="task-name">সার্ভে ফর্ম পূরণ</div>
+            <div class="task-desc">৫টি প্রশ্নের উত্তর দিন</div>
+          </div>
+          <div class="task-reward">
+            <div class="task-amount" id="home-task-reward-1">৳5</div>
+            <div class="task-tag" style="background:#DCFCE7; color:#15803D">সহজ</div>
+          </div>
+        </div>
+
+        <div class="task-card" onclick="switchAppTab('videos')">
+          <div class="task-icon" style="background:#FEE2E2">🎬</div>
+          <div class="task-info">
+            <div class="task-name">ভিডিও দেখুন ও আয় করুন</div>
+            <div class="task-desc">৩০ সেকেন্ড দেখলেই আয়</div>
+          </div>
+          <div class="task-reward">
+            <div class="task-amount" id="home-task-reward-video">৳2</div>
+            <div class="task-tag" style="background:#DBEAFE; color:#1D4ED8">ভিডিও</div>
+          </div>
+        </div>
+
+        <div class="task-card" onclick="openTaskModal('form2')">
+          <div class="task-icon" style="background:#FEF9C3">⭐</div>
+          <div class="task-info">
+            <div class="task-name">অ্যাপ রিভিউ দিন</div>
+            <div class="task-desc">গুগল প্লেতে রিভিউ করুন</div>
+          </div>
+          <div class="task-reward">
+            <div class="task-amount" id="home-task-reward-2">৳8</div>
+            <div class="task-tag" style="background:#FEF9C3; color:#B45309">মাঝারি</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== TASKS TAB ===== -->
+      <div id="tab-tasks" class="app-tab" style="display:none">
+
+        <div class="card-title">📋 সব টাস্ক</div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTaskTab('all',this)">সব</button>
+          <button class="tab" onclick="switchTaskTab('easy',this)">সহজ</button>
+          <button class="tab" onclick="switchTaskTab('medium',this)">মাঝারি</button>
+          <button class="tab" onclick="switchTaskTab('hard',this)">কঠিন</button>
+        </div>
+
+        <div id="tasks-list">
+          <!-- Tasks rendered by JS -->
+        </div>
+
+      </div>
+
+      <!-- ===== VIDEOS TAB ===== -->
+      <div id="tab-videos" class="app-tab" style="display:none">
+
+        <div class="card-title">🎬 ভিডিও টাস্ক</div>
+        <div style="background:var(--primary-light); border-radius:12px; padding:12px; margin-bottom:16px; font-size:13px; color:var(--primary)">
+          📌 প্রতিটি ভিডিও দেখলে আলাদাভাবে ব্যালেন্স যোগ হবে
+        </div>
+
+        <div id="videos-list">
+          <!-- Videos rendered by JS -->
+        </div>
+
+      </div>
+
+      <!-- ===== REFERRAL TAB ===== -->
+      <div id="tab-referral" class="app-tab" style="display:none">
+
+        <div class="referral-box">
+          <div style="font-size:14px; margin-bottom:4px">🔗 আপনার রেফার লিংক</div>
+          <div class="ref-code" onclick="copyRef()" id="ref-code-display">SM-DEMO01</div>
+          <div style="font-size:12px; opacity:0.75">ক্লিক করলে কপি হবে</div>
+          <button class="btn btn-accent btn-sm mt-8" onclick="shareRef()">📤 শেয়ার করুন</button>
+        </div>
+
+        <div class="team-stat">
+          <div class="ts-item">
+            <div class="ts-num" id="team-total">0</div>
+            <div class="ts-label">মোট সদস্য</div>
+          </div>
+          <div class="ts-item">
+            <div class="ts-num" id="team-active">0</div>
+            <div class="ts-label">সক্রিয়</div>
+          </div>
+          <div class="ts-item">
+            <div class="ts-num">৳0</div>
+            <div class="ts-label">রেফার আয়</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💰 রেফার কমিশন</div>
+          <div class="setting-row">
+            <div class="setting-label">ভিডিও রেফার কমিশন</div>
+            <div class="setting-val" id="disp-video-ref">৳<span id="disp-vref-amt">0.50</span>/ভিডিও</div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">টাস্ক রেফার কমিশন</div>
+            <div class="setting-val" id="disp-task-ref">৳<span id="disp-tref-amt">1.00</span>/টাস্ক</div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">VIP আপগ্রেড কমিশন</div>
+            <div class="setting-val">৳<span id="disp-vip-ref">20</span>/আপগ্রেড</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">👥 টিম সদস্য</div>
+          <div id="team-members">
+            <div style="text-align:center; padding:20px; color:var(--muted)">
+              <div style="font-size:40px">👤</div>
+              <div style="margin-top:8px">এখনো কোন সদস্য নেই</div>
+              <div style="font-size:12px; margin-top:4px">রেফার লিংক শেয়ার করুন</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== WITHDRAW TAB ===== -->
+      <div id="tab-withdraw" class="app-tab" style="display:none">
+
+        <div class="card-title">💸 সেন্ড মানি রিকোয়েস্ট</div>
+
+        <div class="withdraw-note">
+          ⚠️ সর্বনিম্ন সেন্ড মানি: <strong>৳100</strong> | প্রতি ৳50 তে <strong>৳5 চার্জ</strong> কাটা হবে | সেন্ড মানি নম্বর: <strong id="withdraw-send-number">অ্যাডমিন কর্তৃক নির্ধারণ করা হয়নি</strong>
+        </div>
+
+        <div class="card">
+          <div class="form-group">
+            <label>পেমেন্ট পদ্ধতি</label>
+            <select id="w-method" onchange="calcCharge()">
+              <option value="bkash">💗 বিকাশ</option>
+              <option value="nagad">🟠 নগদ</option>
+              <option value="rocket">🟣 রকেট</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>মোবাইল নম্বর</label>
+            <input type="tel" id="w-phone" placeholder="01XXXXXXXXX">
+          </div>
+
+          <div class="form-group">
+            <label>পরিমাণ (টাকা)</label>
+            <input type="number" id="w-amount" placeholder="সর্বনিম্ন ১০০ টাকা" oninput="calcCharge()" min="100">
+          </div>
+
+          <div class="charge-preview" id="charge-preview" style="display:none">
+            <div class="charge-row">
+              <span>উইথড্র পরিমাণ</span>
+              <span>৳ <span id="c-amount">0</span></span>
+            </div>
+            <div class="charge-row">
+              <span>চার্জ (৫০ তে ৫ টাকা)</span>
+              <span style="color:var(--danger)">- ৳ <span id="c-charge">0</span></span>
+            </div>
+            <div class="charge-row total">
+              <span>আপনি পাবেন</span>
+              <span style="color:var(--success)">৳ <span id="c-net">0</span></span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary full-btn" onclick="doWithdraw()">📤 সেন্ড মানি রিকোয়েস্ট করুন</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📜 উইথড্র ইতিহাস</div>
+          <div id="withdraw-history">
+            <div style="text-align:center; padding:20px; color:var(--muted)">
+              <div style="font-size:40px">📋</div>
+              <div style="margin-top:8px">কোন উইথড্র নেই</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== VIP TAB ===== -->
+      <div id="tab-vip" class="app-tab" style="display:none">
+
+        <div class="card-title">👑 VIP লেভেল সিস্টেম</div>
+        <div style="background:var(--primary-light); border-radius:12px; padding:12px; margin-bottom:16px; font-size:13px; color:var(--primary)">
+          💎 VIP আপগ্রেড করলে প্রতিদিন বেশি টাস্ক করতে পারবেন এবং বেশি আয় হবে
+        </div>
+
+        <div class="vip-grid" id="vip-cards-container">
+          <!-- Rendered by renderVipCards() -->
+        </div>
+
+      </div>
+
+      <!-- ===== HISTORY TAB ===== -->
+      <div id="tab-history" class="app-tab" style="display:none">
+
+        <div class="card-title">📊 আয়ের ইতিহাস</div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchEarnTab('all',this)">সব</button>
+          <button class="tab" onclick="switchEarnTab('video',this)">ভিডিও</button>
+          <button class="tab" onclick="switchEarnTab('task',this)">টাস্ক</button>
+          <button class="tab" onclick="switchEarnTab('refer',this)">রেফার</button>
+        </div>
+
+        <div class="card">
+          <div id="earn-history-list">
+            <div style="text-align:center; padding:20px; color:var(--muted)">
+              <div style="font-size:40px">📈</div>
+              <div style="margin-top:8px">এখনো কোন আয় নেই</div>
+              <div style="font-size:12px; margin-top:4px">টাস্ক করুন ও আয় শুরু করুন</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== PROFILE TAB ===== -->
+      <div id="tab-profile" class="app-tab" style="display:none">
+
+        <div class="profile-header">
+          <div class="profile-pic">ম</div>
+          <div class="profile-name" id="profile-name-disp">মোঃ ইউজার</div>
+          <div class="profile-phone">📱 01XXXXXXXXX</div>
+          <div style="margin-top:10px">
+            <div class="vip-badge" style="background:rgba(255,165,0,0.3); color:#FFD700; margin:0 auto;">👑 VIP 1</div>
+          </div>
+        </div>
+
+        <div class="profile-menu">
+          <div class="pm-item" onclick="switchAppTab('vip')">
+            <div class="pm-icon">👑</div>
+            <div>VIP আপগ্রেড করুন</div>
+            <div class="pm-arrow">›</div>
+          </div>
+          <div class="pm-item" onclick="switchAppTab('referral')">
+            <div class="pm-icon">👥</div>
+            <div>রেফার ও আয় করুন</div>
+            <div class="pm-arrow">›</div>
+          </div>
+          <div class="pm-item" onclick="switchAppTab('withdraw')">
+            <div class="pm-icon">💸</div>
+            <div>উইথড্র করুন</div>
+            <div class="pm-arrow">›</div>
+          </div>
+          <div class="pm-item" onclick="switchAppTab('history')">
+            <div class="pm-icon">📊</div>
+            <div>আয়ের ইতিহাস</div>
+            <div class="pm-arrow">›</div>
+          </div>
+          <div class="pm-item" onclick="showToast('সাপোর্ট: 01922490389')">
+            <div class="pm-icon">📞</div>
+            <div>সাপোর্ট</div>
+            <div class="pm-arrow">›</div>
+          </div>
+          <div class="pm-item" onclick="doLogout()" style="color:var(--danger)">
+            <div class="pm-icon">🚪</div>
+            <div>লগআউট</div>
+            <div class="pm-arrow">›</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="switchAppTab('home')" id="nav-home">
+        <span class="ni">🏠</span>
+        <span>হোম</span>
+      </button>
+      <button class="nav-item" onclick="switchAppTab('tasks')" id="nav-tasks">
+        <span class="ni">📋</span>
+        <span>টাস্ক</span>
+      </button>
+      <button class="nav-item" onclick="switchAppTab('videos')" id="nav-videos">
+        <span class="ni">🎬</span>
+        <span>ভিডিও</span>
+      </button>
+      <button class="nav-item" onclick="switchAppTab('referral')" id="nav-referral">
+        <span class="ni">👥</span>
+        <span>রেফার</span>
+      </button>
+      <button class="nav-item" onclick="switchAppTab('profile')" id="nav-profile">
+        <span class="ni">👤</span>
+        <span>প্রোফাইল</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 6: ADMIN LOGIN
+     ============================================================ -->
+<div class="screen auth-screen" id="screen-admin-login">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">⚙️</div>
+      <h1>অ্যাডমিন</h1>
+      <p>SentMoney কন্ট্রোল প্যানেল</p>
+    </div>
+    <div class="form-group">
+      <label>অ্যাডমিন ইমেইল</label>
+      <input type="text" id="admin-email" placeholder="ইমেইল দিন">
+    </div>
+    <div class="form-group">
+      <label>অ্যাডমিন পাসওয়ার্ড</label>
+      <div class="pw-wrap">
+        <input type="password" id="admin-pass" placeholder="পাসওয়ার্ড দিন">
+        <button type="button" class="pw-eye" onclick="togglePw('admin-pass',this)" title="পাসওয়ার্ড দেখুন">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="doAdminLogin()">🔐 অ্যাডমিন লগইন</button>
+    <div class="auth-link"><span onclick="showScreen('screen-login')">← ফিরে যান</span></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 7: ADMIN PANEL
+     ============================================================ -->
+<div class="screen admin-screen" id="screen-admin">
+  <div class="admin-topbar">
+    <div>
+      <div class="admin-title">⚙️ অ্যাডমিন প্যানেল</div>
+      <div style="font-size:11px; opacity:0.6; margin-top:2px">SentMoney</div>
+    </div>
+    <button class="back-btn" style="margin:0" onclick="showScreen('screen-login')">🚪 লগআউট</button>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="admin-tab-dashboard" class="admin-subpage active">
+      <div class="admin-stat-grid">
+        <div class="admin-stat">
+          <div class="as-icon">👤</div>
+          <div class="as-num" id="stat-users">0</div>
+          <div class="as-label">মোট ইউজার</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">✅</div>
+          <div class="as-num" id="stat-active">0</div>
+          <div class="as-label">সক্রিয় ইউজার</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">💸</div>
+          <div class="as-num">৳<span id="stat-paid">0</span></div>
+          <div class="as-label">মোট পেমেন্ট</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">⏳</div>
+          <div class="as-num" id="stat-pending">0</div>
+          <div class="as-label">পেন্ডিং উইথড্র</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">🔑</div>
+          <div class="as-num" id="stat-act-pending">0</div>
+          <div class="as-label">পেন্ডিং অ্যাক্টিভেশন</div>
+        </div>
+      </div>
+
+      <div class="admin-menu-grid">
+        <div class="admin-menu-item" onclick="showAdminTab('users')">
+          <div class="ami-icon">👥</div>
+          <div class="ami-label">ইউজার</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('withdraw')">
+          <div class="ami-icon">💰</div>
+          <div class="ami-label">উইথড্র</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('videos')">
+          <div class="ami-icon">🎬</div>
+          <div class="ami-label">ভিডিও</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('tasks')">
+          <div class="ami-icon">📋</div>
+          <div class="ami-label">টাস্ক</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('settings')">
+          <div class="ami-icon">⚙️</div>
+          <div class="ami-label">সেটিং</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('plans')">
+          <div class="ami-icon">👑</div>
+          <div class="ami-label">VIP প্ল্যান</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('notices')">
+          <div class="ami-icon">📢</div>
+          <div class="ami-label">নোটিশ</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('reports')">
+          <div class="ami-icon">📊</div>
+          <div class="ami-label">রিপোর্ট</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('commission')">
+          <div class="ami-icon">🔗</div>
+          <div class="ami-label">কমিশন</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('activations'); renderAdminActivationRequests();">
+          <div class="ami-icon">🔑</div>
+          <div class="ami-label">অ্যাক্টিভেশন</div>
+        </div>
+        <div class="admin-menu-item" onclick="showAdminTab('vipreqs'); renderAdminVipRequests();">
+          <div class="ami-icon">👑</div>
+          <div class="ami-label">VIP রিকোয়েস্ট</div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">📋 সাম্প্রতিক উইথড্র</div>
+        <div id="admin-recent-withdraw">
+          <div style="text-align:center; padding:16px; opacity:0.5">কোন পেন্ডিং উইথড্র নেই</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== USERS ===== -->
+    <div id="admin-tab-users" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">👥 ইউজার ম্যানেজমেন্ট</div>
+      <div class="admin-section" style="margin-bottom:12px">
+        <input type="text" class="admin-input" placeholder="🔍 নাম বা নম্বর দিয়ে খুঁজুন..." oninput="searchUsers(this.value)" style="margin-bottom:0">
+      </div>
+      <div class="admin-section">
+        <div id="admin-user-list">
+          <!-- Users listed by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WITHDRAW ADMIN ===== -->
+    <div id="admin-tab-withdraw" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">💰 পেন্ডিং উইথড্র</div>
+      <div id="admin-withdraw-list">
+        <div style="text-align:center; padding:24px; opacity:0.5; color:white">কোন পেন্ডিং উইথড্র নেই</div>
+      </div>
+    </div>
+
+    <!-- ===== VIDEOS ADMIN ===== -->
+    <div id="admin-tab-videos" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">🎬 ভিডিও ম্যানেজমেন্ট</div>
+      <div class="admin-section">
+        <div class="admin-section-title">নতুন ভিডিও যোগ করুন</div>
+        <input type="text" class="admin-input" id="new-video-title" placeholder="ভিডিও শিরোনাম">
+        <input type="text" class="admin-input" id="new-video-url" placeholder="ইউটিউব লিংক">
+        <input type="number" class="admin-input" id="new-video-reward" placeholder="আয় (টাকা)">
+        <button class="btn btn-accent full-btn" onclick="addVideo()">➕ ভিডিও যোগ করুন</button>
+      </div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">ভিডিও তালিকা</div>
+        <div id="admin-videos-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== TASKS ADMIN ===== -->
+    <div id="admin-tab-tasks" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">📋 টাস্ক ম্যানেজমেন্ট</div>
+      <div class="admin-section">
+        <div class="admin-section-title">নতুন টাস্ক যোগ করুন</div>
+        <input type="text" class="admin-input" id="new-task-name" placeholder="টাস্কের নাম">
+        <input type="text" class="admin-input" id="new-task-desc" placeholder="বিবরণ">
+        <input type="number" class="admin-input" id="new-task-reward" placeholder="আয় (টাকা)">
+        <select class="admin-input" id="new-task-difficulty" style="color:white">
+          <option value="easy">সহজ</option>
+          <option value="medium">মাঝারি</option>
+          <option value="hard">কঠিন</option>
+        </select>
+        <button class="btn btn-accent full-btn" onclick="addTask()">➕ টাস্ক যোগ করুন</button>
+      </div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">টাস্ক তালিকা</div>
+        <div id="admin-tasks-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div id="admin-tab-settings" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">⚙️ সিস্টেম সেটিং</div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">💰 আর্থিক সেটিং</div>
+        <div class="setting-row">
+          <div class="setting-label">মিনিমাম উইথড্র</div>
+          <div class="inline-edit">
+            <input type="number" id="set-minwd" value="100">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('minwd')">✓</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">চার্জ (প্রতি ৫০ তে)</div>
+          <div class="inline-edit">
+            <input type="number" id="set-charge" value="5">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('charge')">✓</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">অ্যাক্টিভেশন ফি (৳)</div>
+          <div class="inline-edit">
+            <input type="number" id="set-actfee" value="200">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('actfee')">✓</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">💳 VIP পেমেন্ট নম্বর সেটিং</div>
+        <div class="setting-row">
+          <div class="setting-label">পেমেন্ট নম্বর (বিকাশ/নগদ/রকেট)</div>
+          <div class="inline-edit" style="flex-direction:column; align-items:stretch; gap:6px; width:100%">
+            <input type="text" id="set-paynumber" placeholder="01XXXXXXXXX" style="width:160px">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('paynumber')">✓ সেভ</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">পেমেন্ট পদ্ধতি</div>
+          <div class="inline-edit">
+            <input type="text" id="set-paymethod" placeholder="যেমন: বিকাশ" style="width:120px">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('paymethod')">✓</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">💸 সেন্ড মানি নম্বর সেটিং</div>
+        <div class="setting-row">
+          <div class="setting-label">সেন্ড মানি নম্বর</div>
+          <div class="inline-edit" style="flex-direction:column; align-items:stretch; gap:6px; width:100%">
+            <input type="text" id="set-wdnumber" placeholder="01XXXXXXXXX" style="width:160px">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('wdnumber')">✓ সেভ</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">পদ্ধতি</div>
+          <div class="inline-edit">
+            <input type="text" id="set-wdmethod" placeholder="সেন্ড মানি" style="width:120px">
+            <button class="btn btn-accent btn-sm" onclick="saveSetting('wdmethod')">✓</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">🔐 অ্যাডমিন ক্রেডেনশিয়াল পরিবর্তন</div>
+        <div class="setting-row">
+          <div class="setting-label">অ্যাডমিন ইমেইল</div>
+          <div class="inline-edit" style="flex-direction:column; align-items:stretch; gap:6px">
+            <input type="text" id="set-admin-email" placeholder="admin@gmail.com" style="width:100%; max-width:200px">
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">নতুন পাসওয়ার্ড</div>
+          <div class="inline-edit" style="flex-direction:column; align-items:stretch; gap:6px">
+            <div class="pw-wrap" style="max-width:200px">
+              <input type="password" id="set-admin-pass" placeholder="নতুন পাসওয়ার্ড দিন" style="width:100%">
+              <button type="button" class="pw-eye" onclick="togglePw('set-admin-pass',this)">👁</button>
+            </div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">পুরানো পাসওয়ার্ড নিশ্চিত করুন</div>
+          <div class="inline-edit" style="flex-direction:column; align-items:stretch; gap:6px">
+            <div class="pw-wrap" style="max-width:200px">
+              <input type="password" id="set-admin-oldpass" placeholder="বর্তমান পাসওয়ার্ড" style="width:100%">
+              <button type="button" class="pw-eye" onclick="togglePw('set-admin-oldpass',this)">👁</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-danger full-btn" style="margin-top:10px" onclick="changeAdminCredentials()">🔐 পরিবর্তন করুন</button>
+      </div>
+    </div>
+
+    <!-- ===== VIP PLANS ===== -->
+    <div id="admin-tab-plans" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">👑 VIP প্ল্যান ম্যানেজমেন্ট</div>
+      <div id="admin-vip-plans">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ===== NOTICES ===== -->
+    <div id="admin-tab-notices" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">📢 নোটিশ পাঠান</div>
+      <div class="admin-section">
+        <textarea class="admin-input" id="notice-text" placeholder="নোটিশের বার্তা লিখুন..." style="min-height:100px; resize:vertical"></textarea>
+        <button class="btn btn-accent full-btn" onclick="sendNotice()">📢 সকলকে নোটিশ পাঠান</button>
+      </div>
+      <div class="admin-section" style="margin-top:12px">
+        <div class="admin-section-title">পূর্ববর্তী নোটিশ</div>
+        <div id="notices-list">
+          <div style="opacity:0.5; text-align:center; padding:12px">কোন নোটিশ নেই</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REPORTS ===== -->
+    <div id="admin-tab-reports" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">📊 আয়ের রিপোর্ট</div>
+      <div class="admin-stat-grid">
+        <div class="admin-stat">
+          <div class="as-icon">🎬</div>
+          <div class="as-num">৳0</div>
+          <div class="as-label">মোট ভিডিও আয়</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">📋</div>
+          <div class="as-num">৳0</div>
+          <div class="as-label">মোট টাস্ক আয়</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">👥</div>
+          <div class="as-num">৳0</div>
+          <div class="as-label">মোট রেফার আয়</div>
+        </div>
+        <div class="admin-stat">
+          <div class="as-icon">🎁</div>
+          <div class="as-num">৳0</div>
+          <div class="as-label">মোট বোনাস</div>
+        </div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">মোট উইথড্র দেওয়া হয়েছে</div>
+        <div style="font-size:28px; font-weight:800; color:var(--accent)">৳ <span id="total-paid-out">0</span></div>
+        <div style="font-size:12px; opacity:0.6; margin-top:4px">অ্যাপ্রুভড উইথড্র</div>
+      </div>
+    </div>
+
+
+    <!-- ===== ACTIVATIONS ===== -->
+    <div id="admin-tab-activations" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">🔑 অ্যাকাউন্ট অ্যাক্টিভেশন রিকোয়েস্ট</div>
+      <div id="admin-activation-list">
+        <div style="text-align:center; padding:24px; opacity:0.5; color:white">কোন পেন্ডিং রিকোয়েস্ট নেই</div>
+      </div>
+    </div>
+
+    <!-- ===== VIP REQUESTS ===== -->
+    <div id="admin-tab-vipreqs" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">👑 VIP আপগ্রেড রিকোয়েস্ট</div>
+      <div id="admin-vip-req-list">
+        <div style="text-align:center; padding:24px; opacity:0.5; color:white">কোন পেন্ডিং VIP রিকোয়েস্ট নেই</div>
+      </div>
+    </div>
+    <!-- ===== COMMISSION ===== -->
+    <div id="admin-tab-commission" class="admin-subpage">
+      <button class="back-btn" onclick="showAdminTab('dashboard')">← ড্যাশবোর্ড</button>
+      <div class="admin-section-title" style="color:white; font-size:15px; font-weight:700; margin-bottom:12px">🔗 রেফার কমিশন সেটিং</div>
+      <div class="admin-section">
+        <div class="admin-section-title">কমিশন রেট সেট করুন</div>
+        <div class="setting-row">
+          <div class="setting-label">ভিডিও রেফার কমিশন (৳)</div>
+          <div class="inline-edit">
+            <input type="number" id="comm-video" value="0.50" step="0.10">
+            <button class="btn btn-accent btn-sm" onclick="saveCommission('video')">✓</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">টাস্ক রেফার কমিশন (৳)</div>
+          <div class="inline-edit">
+            <input type="number" id="comm-task" value="1.00" step="0.50">
+            <button class="btn btn-accent btn-sm" onclick="saveCommission('task')">✓</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">VIP আপগ্রেড কমিশন (৳)</div>
+          <div class="inline-edit">
+            <input type="number" id="comm-vip" value="20">
+            <button class="btn btn-accent btn-sm" onclick="saveCommission('vip')">✓</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">অ্যাক্টিভেশন কমিশন (৳)</div>
+          <div class="inline-edit">
+            <input type="number" id="comm-act" value="10">
+            <button class="btn btn-accent btn-sm" onclick="saveCommission('act')">✓</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADMIN BOTTOM NAV -->
+  <div class="admin-bottom-nav">
+    <button class="admin-nav-item active" onclick="showAdminTab('dashboard')" id="anav-dash">
+      <span class="ni">🏠</span><span>হোম</span>
+    </button>
+    <button class="admin-nav-item" onclick="showAdminTab('users')" id="anav-users">
+      <span class="ni">👥</span><span>ইউজার</span>
+    </button>
+    <button class="admin-nav-item" onclick="showAdminTab('withdraw')" id="anav-wd">
+      <span class="ni">💰</span><span>উইথড্র</span>
+    </button>
+    <button class="admin-nav-item" onclick="showAdminTab('settings')" id="anav-set">
+      <span class="ni">⚙️</span><span>সেটিং</span>
+    </button>
+    <button class="admin-nav-item" onclick="showAdminTab('reports')" id="anav-rep">
+      <span class="ni">📊</span><span>রিপোর্ট</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-task-title">টাস্ক</div>
+      <button class="modal-close" onclick="closeModal('modal-task')">✕</button>
+    </div>
+    <div id="modal-task-body"></div>
+  </div>
+</div>
+
+<!-- DAILY BONUS MODAL -->
+<div class="modal-overlay" id="modal-bonus">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">🎁 দৈনিক বোনাস</div>
+      <button class="modal-close" onclick="closeModal('modal-bonus')">✕</button>
+    </div>
+    <div style="text-align:center; margin-bottom:16px; font-size:13px; color:var(--muted)">
+      প্রতিদিন লগইন করলে বোনাস পাবেন। ৭ দিন পূর্ণ করলে বড় বোনাস!
+    </div>
+    <div class="bonus-grid">
+      <div class="bonus-day claimed"><div class="bd-day">দিন ১</div><div class="bd-coin">✅</div><div class="bd-amt">৳2</div></div>
+      <div class="bonus-day today"><div class="bd-day">দিন ২</div><div class="bd-coin">🎁</div><div class="bd-amt">৳3</div></div>
+      <div class="bonus-day"><div class="bd-day">দিন ৩</div><div class="bd-coin">💰</div><div class="bd-amt">৳4</div></div>
+      <div class="bonus-day"><div class="bd-day">দিন ৪</div><div class="bd-coin">💰</div><div class="bd-amt">৳5</div></div>
+      <div class="bonus-day"><div class="bd-day">দিন ৫</div><div class="bd-coin">💰</div><div class="bd-amt">৳7</div></div>
+      <div class="bonus-day"><div class="bd-day">দিন ৬</div><div class="bd-coin">💰</div><div class="bd-amt">৳10</div></div>
+      <div class="bonus-day"><div class="bd-day">দিন ৭</div><div class="bd-coin">🏆</div><div class="bd-amt">৳20</div></div>
+    </div>
+    <button class="btn btn-primary full-btn" onclick="claimBonus()">🎁 আজকের বোনাস নিন (৳3)</button>
+  </div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="modal-overlay" id="modal-video">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-video-title">ভিডিও</div>
+      <button class="modal-close" onclick="closeModal('modal-video')">✕</button>
+    </div>
+    <div class="video-player">
+      <div class="play-btn" onclick="startVideo()" id="play-btn-main">▶</div>
+    </div>
+    <div class="video-progress">
+      <div class="video-progress-fill" id="video-prog" style="width:0%"></div>
+    </div>
+    <div style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:16px" id="video-status">
+      ভিডিও শুরু করতে প্লে বাটনে চাপুন
+    </div>
+    <button class="btn btn-primary full-btn" id="video-claim-btn" disabled onclick="claimVideo()">⏳ ভিডিও দেখুন...</button>
+  </div>
+</div>
+
+<!-- VIP PAYMENT MODAL -->
+<div class="modal-overlay" id="modal-vip-pay">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">👑 VIP আপগ্রেড পেমেন্ট</div>
+      <button class="modal-close" onclick="closeModal('modal-vip-pay')">✕</button>
+    </div>
+    <div style="background:var(--primary-light); border-radius:12px; padding:14px; margin-bottom:16px; text-align:center">
+      <div style="font-size:13px; color:var(--muted)">VIP <span id="vip-pay-level"></span> — <span id="vip-pay-name"></span></div>
+      <div style="font-size:28px; font-weight:800; color:var(--primary)">৳<span id="vip-pay-price"></span></div>
+      <div style="font-size:13px; color:var(--muted); margin-top:6px">নিচের নম্বরে সেন্ড মানি করুন:</div>
+      <div style="font-size:16px; font-weight:800; color:var(--text); margin-top:4px" id="vip-pay-number"></div>
+      <div style="font-size:12px; color:var(--muted)" id="vip-pay-method"></div>
+    </div>
+    <div class="form-group">
+      <label>ট্রানজেকশন আইডি (TxID)</label>
+      <input type="text" id="vip-txid" placeholder="ট্রানজেকশন আইডি দিন">
+    </div>
+    <button class="btn btn-primary full-btn" onclick="submitVipPayment()">✅ পেমেন্ট নিশ্চিত করুন</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://fghhnaoszoxwvpedjlai.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ysFEHCyenhEZ61S0EZVEcA_XvkN1fKj';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Loading overlay
+function showLoading(msg) {
+  msg = msg || 'লোড হচ্ছে...';
+  let el = document.getElementById('global-loading');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'global-loading';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(108,62,244,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:white;font-size:16px;font-weight:700;gap:14px;font-family:inherit';
+    el.innerHTML = '<div style="width:44px;height:44px;border:4px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite"></div><div id="loading-msg"></div>';
+    if (!document.getElementById('spin-style')) {
+      const s = document.createElement('style');
+      s.id = 'spin-style';
+      s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(s);
+    }
+    document.body.appendChild(el);
+  }
+  el.style.display = 'flex';
+  document.getElementById('loading-msg').textContent = msg;
+}
+function hideLoading() {
+  const el = document.getElementById('global-loading');
+  if (el) el.style.display = 'none';
+}
+
+// ============================================================
+// SUPABASE DB HELPERS
+// ============================================================
+async function dbLoadAppConfig() {
+  try {
+    const { data, error } = await db.from('app_config').select('*').eq('id', 1).single();
+    if (error || !data) return null;
+    return data;
+  } catch(e) { return null; }
+}
+async function dbSaveAppConfig() {
+  try {
+    const payload = {
+      id: 1,
+      settings: state.settings,
+      commissions: state.commissions,
+      vip_plans: state.vipPlans,
+      videos: state.videos,
+      tasks: state.tasks,
+      notices: state.notices,
+      admin_credentials: state.adminCredentials
+    };
+    await db.from('app_config').upsert(payload);
+  } catch(e) { console.warn('Config save error', e); }
+}
+async function dbLoadUser(phone, password) {
+  try {
+    const { data, error } = await db.from('users').select('*').eq('phone', phone).eq('password', password).single();
+    if (error || !data) return null;
+    return dbRowToUser(data);
+  } catch(e) { return null; }
+}
+async function dbGetUserByPhone(phone) {
+  try {
+    const { data, error } = await db.from('users').select('*').eq('phone', phone).single();
+    if (error || !data) return null;
+    return dbRowToUser(data);
+  } catch(e) { return null; }
+}
+async function dbGetUserByRefCode(refCode) {
+  try {
+    const { data, error } = await db.from('users').select('*').eq('refer_code', refCode).single();
+    if (error || !data) return null;
+    return dbRowToUser(data);
+  } catch(e) { return null; }
+}
+async function dbSaveUser(user) {
+  try {
+    await db.from('users').upsert(userToDbRow(user));
+  } catch(e) { console.warn('User save error', e); }
+}
+async function dbLoadAllUsers() {
+  try {
+    const { data, error } = await db.from('users').select('*');
+    if (error || !data) return [];
+    return data.map(dbRowToUser);
+  } catch(e) { return []; }
+}
+async function dbDeleteUser(id) {
+  try { await db.from('users').delete().eq('id', id); } catch(e) {}
+}
+async function dbLoadWithdrawals() {
+  try {
+    const { data, error } = await db.from('withdrawals').select('*').order('created_at', {ascending: false});
+    if (error || !data) return [];
+    return data.map(r => ({ id: r.id, amount: r.amount, charge: r.charge, net: r.net,
+      method: r.method, phone: r.phone, status: r.status, date: r.date,
+      userName: r.user_name, userId: r.user_id }));
+  } catch(e) { return []; }
+}
+async function dbSaveWithdrawal(wd) {
+  try {
+    await db.from('withdrawals').upsert({ id: wd.id, amount: wd.amount, charge: wd.charge,
+      net: wd.net, method: wd.method, phone: wd.phone, status: wd.status,
+      date: wd.date, user_name: wd.userName, user_id: wd.userId });
+  } catch(e) {}
+}
+async function dbLoadActivationRequests() {
+  try {
+    const { data, error } = await db.from('activation_requests').select('*').order('created_at', {ascending: false});
+    if (error || !data) return [];
+    return data.map(r => ({ id: r.id, userId: r.user_id, userName: r.user_name,
+      phone: r.phone, txid: r.txid, amount: r.amount, status: r.status, date: r.date }));
+  } catch(e) { return []; }
+}
+async function dbSaveActivationRequest(req) {
+  try {
+    await db.from('activation_requests').upsert({ id: req.id, user_id: req.userId,
+      user_name: req.userName, phone: req.phone, txid: req.txid,
+      amount: req.amount, status: req.status, date: req.date });
+  } catch(e) {}
+}
+async function dbLoadVipRequests() {
+  try {
+    const { data, error } = await db.from('vip_requests').select('*').order('created_at', {ascending: false});
+    if (error || !data) return [];
+    return data.map(r => ({ id: r.id, userId: r.user_id, userName: r.user_name,
+      phone: r.phone, level: r.level, planName: r.plan_name,
+      price: r.price, txid: r.txid, status: r.status, date: r.date }));
+  } catch(e) { return []; }
+}
+async function dbSaveVipRequest(req) {
+  try {
+    await db.from('vip_requests').upsert({ id: req.id, user_id: req.userId,
+      user_name: req.userName, phone: req.phone, level: req.level,
+      plan_name: req.planName, price: req.price, txid: req.txid,
+      status: req.status, date: req.date });
+  } catch(e) {}
+}
+function userToDbRow(u) {
+  return { id: u.id, name: u.name, phone: u.phone, password: u.password,
+    vip: u.vip, active: u.active, balance: u.balance,
+    refer_code: u.referCode, referred_by: u.referredBy, team: u.team,
+    join_date: u.joinDate, tasks_done_today: u.tasksDoneToday,
+    videos_done_today: u.videosDoneToday,
+    withdraw_history: u.withdrawHistory, earn_history: u.earnHistory };
+}
+function dbRowToUser(r) {
+  return { id: r.id, name: r.name, phone: r.phone, password: r.password,
+    vip: r.vip, active: r.active,
+    balance: r.balance || { video: 0, task: 0, refer: 0, bonus: 0 },
+    referCode: r.refer_code, referredBy: r.referred_by,
+    team: r.team || [], joinDate: r.join_date,
+    tasksDoneToday: r.tasks_done_today || 0,
+    videosDoneToday: r.videos_done_today || 0,
+    withdrawHistory: r.withdraw_history || [],
+    earnHistory: r.earn_history || [] };
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  users: [],
+  currentUser: null,
+  _pendingVipLevel: null,
+  adminCredentials: { email: 'admin@gmail.com', password: 'sifatkhan420' },
+  commissions: {
+    video: 0.50,
+    task: 1.00,
+    vip: 20,
+    activation: 10
+  },
+  videos: [
+    { id: 1, title: 'বাংলাদেশের সৌন্দর্য', url: 'https://youtube.com', reward: 2, duration: 30 },
+    { id: 2, title: 'অনলাইনে আয়ের উপায়', url: 'https://youtube.com', reward: 3, duration: 45 },
+    { id: 3, title: 'ডিজিটাল মার্কেটিং', url: 'https://youtube.com', reward: 2.5, duration: 30 },
+  ],
+  tasks: [
+    { id: 1, name: 'সার্ভে ফর্ম পূরণ', desc: '৫টি প্রশ্নের উত্তর দিন', reward: 5, difficulty: 'easy', icon: '📝' },
+    { id: 2, name: 'অ্যাপ রিভিউ', desc: 'গুগল প্লেতে রিভিউ করুন', reward: 8, difficulty: 'medium', icon: '⭐' },
+    { id: 3, name: 'ফেসবুক শেয়ার', desc: 'পোস্ট শেয়ার করুন', reward: 3, difficulty: 'easy', icon: '📘' },
+    { id: 4, name: 'ইউটিউব সাবস্ক্রাইব', desc: 'চ্যানেল সাবস্ক্রাইব করুন', reward: 4, difficulty: 'easy', icon: '📺' },
+    { id: 5, name: 'রেজিস্ট্রেশন টাস্ক', desc: 'সাইটে রেজিস্ট্রেশন করুন', reward: 15, difficulty: 'hard', icon: '📋' },
+  ],
+  withdrawals: [],
+  notices: [],
+  earnHistory: [],
+  currentVideo: null,
+  videoTimer: null,
+  videoProgress: 0,
+  vipPlans: [
+    { level: 1, name: 'VIP 1', price: 0, dailyTasks: 5, taskReward: 2, color: '#CD7F32' },
+    { level: 2, name: 'VIP 2', price: 200, dailyTasks: 10, taskReward: 3, color: '#C0C0C0' },
+    { level: 3, name: 'VIP 3', price: 500, dailyTasks: 20, taskReward: 5, color: '#FFD700' },
+    { level: 4, name: 'VIP 4', price: 1000, dailyTasks: 30, taskReward: 8, color: '#00CED1' },
+    { level: 5, name: 'VIP 5', price: 2500, dailyTasks: 50, taskReward: 12, color: '#FF4500' },
+  ],
+  vipRequests: [],
+  activationRequests: [],
+  settings: {
+    minWithdraw: 100,
+    chargePerFifty: 5,
+    paymentNumber: '',
+    paymentMethod: 'বিকাশ',
+    activationFee: 200,
+    withdrawPayNumber: '',
+    withdrawPayMethod: 'সেন্ড মানি'
+  }
+};
+
+// Demo user
+state.users.push({
+  id: 1, name: 'মোঃ ডেমো ইউজার', phone: '01922490389',
+  password: '123456', vip: 1, active: true,
+  balance: { video: 0, task: 0, refer: 0, bonus: 0 },
+  referCode: 'SM-DEMO01', referredBy: null, team: [],
+  joinDate: new Date().toLocaleDateString('bn-BD'),
+  tasksDoneToday: 0, videosDoneToday: 0,
+  withdrawHistory: [], earnHistory: []
+});
+
+// ============================================================
+// SCREEN NAVIGATION
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ============================================================
+// AUTH FLOWS
+// ============================================================
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pass = document.getElementById('reg-pass').value.trim();
+  const ref = document.getElementById('reg-ref').value.trim();
+
+  if (!name || !phone || !pass) { showToast('সব তথ্য পূরণ করুন'); return; }
+  if (phone.length < 11) { showToast('সঠিক মোবাইল নম্বর দিন'); return; }
+
+  showLoading('রেজিস্ট্রেশন হচ্ছে...');
+  const existing = await dbGetUserByPhone(phone);
+  if (existing) { hideLoading(); showToast('এই নম্বরে আগে থেকে অ্যাকাউন্ট আছে'); return; }
+
+  const newUser = {
+    id: Date.now(),
+    name, phone, password: pass,
+    vip: 1, active: false,
+    balance: { video: 0, task: 0, refer: 0, bonus: 0 },
+    referCode: 'SM-' + phone.slice(-4) + Math.floor(Math.random()*100),
+    referredBy: ref || null,
+    team: [], joinDate: new Date().toLocaleDateString('bn-BD'),
+    tasksDoneToday: 0, videosDoneToday: 0,
+    withdrawHistory: [], earnHistory: []
+  };
+
+  // Give referral bonus
+  if (ref) {
+    const referrer = state.users.find(u => u.referCode === ref);
+    if (referrer) {
+      referrer.team.push({ id: newUser.id, name, phone, joinDate: newUser.joinDate });
+      referrer.balance.refer += state.commissions.activation;
+      referrer.earnHistory.push({ type: 'refer', desc: 'নতুন রেফার - ' + name, amount: state.commissions.activation, date: new Date().toLocaleDateString('bn-BD') });
+    }
+  }
+
+  state.users.push(newUser);
+  state.currentUser = newUser;
+  await dbSaveUser(newUser);
+  // Update referrer's team in DB
+  if (ref) {
+    const referrer = await dbGetUserByRefCode(ref);
+    if (referrer) {
+      if (!referrer.team) referrer.team = [];
+      referrer.team.push({ name: newUser.name, joinDate: newUser.joinDate });
+      await dbSaveUser(referrer);
+      // update local state too
+      const localRef = state.users.find(u => u.referCode === ref);
+      if (localRef) localRef.team = referrer.team;
+    }
+  }
+  hideLoading();
+  showActivationScreen();
+}
+
+async function doLogin() {
+  const phone = document.getElementById('login-phone').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+
+  // Admin check (local)
+  if (phone === state.adminCredentials.email && pass === state.adminCredentials.password) {
+    showLoading('অ্যাডমিন লোড হচ্ছে...');
+    await loadAdminData();
+    hideLoading();
+    renderAdminDashboard();
+    renderAdminUserList();
+    renderAdminWithdrawList();
+    renderVideos();
+    renderTasks();
+    renderAdminVipPlans();
+    syncSettingsInputs();
+    showScreen('screen-admin');
+    return;
+  }
+
+  showLoading('লগইন হচ্ছে...');
+  const user = await dbLoadUser(phone, pass);
+  hideLoading();
+  if (!user) { showToast('ভুল নম্বর বা পাসওয়ার্ড'); return; }
+  state.currentUser = user;
+  if (!user.active) {
+    showActivationScreen();
+    return;
+  }
+  enterApp();
+}
+
+function enterApp() {
+  saveSession();
+  updateBalanceDisplay();
+  renderTasks();
+  renderVideos();
+  renderAdminVipPlans();
+  renderVipCards();
+  renderEarnHistory();
+  renderWithdrawHistory();
+  renderReferral();
+  showScreen('screen-app');
+  switchAppTab('home');
+}
+
+function showActivationScreen() {
+  document.getElementById('act-fee').textContent = state.settings.activationFee;
+  document.getElementById('act-pay-number').textContent = state.settings.paymentNumber || 'অ্যাডমিন নম্বর সেট করেননি';
+  document.getElementById('act-pay-method').textContent = state.settings.paymentMethod || 'বিকাশ/নগদ/রকেট';
+  document.getElementById('act-txid').value = '';
+  showScreen('screen-activation');
+}
+
+async function submitActivation() {
+  const txid = document.getElementById('act-txid').value.trim();
+  if (!txid) { showToast('ট্রানজেকশন আইডি দিন'); return; }
+  showLoading('পাঠানো হচ্ছে...');
+  const req = { id: Date.now(), userId: state.currentUser.id, userName: state.currentUser.name,
+    phone: state.currentUser.phone, txid, amount: state.settings.activationFee,
+    status: 'pending', date: new Date().toLocaleDateString('bn-BD') };
+  state.activationRequests.push(req);
+  await dbSaveActivationRequest(req);
+  hideLoading();
+  showScreen('screen-activation-pending');
+}
+
+function doLogout() {
+  if (state.currentUser) dbSaveUser(state.currentUser);
+  state.currentUser = null;
+  showScreen('screen-login');
+}
+
+// ============================================================
+// APP NAVIGATION
+// ============================================================
+function switchAppTab(tab) {
+  document.querySelectorAll('.app-tab').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('tab-' + tab);
+  if (el) el.style.display = 'block';
+  const nav = document.getElementById('nav-' + tab);
+  if (nav) nav.classList.add('active');
+
+  if (tab === 'tasks') renderTasks();
+  if (tab === 'videos') renderVideos();
+  if (tab === 'referral') renderReferral();
+  if (tab === 'vip') renderVipCards();
+}
+
+// ============================================================
+// BALANCE
+// ============================================================
+function updateBalanceDisplay() {
+  if (!state.currentUser) return;
+  const b = state.currentUser.balance;
+  const total = (b.video + b.task + b.refer + b.bonus).toFixed(2);
+  document.getElementById('total-balance').textContent = total;
+  document.getElementById('video-balance').textContent = b.video.toFixed(2);
+  document.getElementById('task-balance').textContent = b.task.toFixed(2);
+  document.getElementById('refer-balance').textContent = b.refer.toFixed(2);
+  document.getElementById('bonus-balance').textContent = b.bonus.toFixed(2);
+  document.getElementById('today-earn').textContent = '0.00';
+}
+
+function addEarning(type, amount, desc) {
+  if (!state.currentUser) return;
+  state.currentUser.balance[type] += amount;
+  state.currentUser.earnHistory.push({
+    type, desc, amount,
+    date: new Date().toLocaleDateString('bn-BD')
+  });
+  updateBalanceDisplay();
+  renderEarnHistory();
+  dbSaveUser(state.currentUser);
+}
+
+// ============================================================
+// TASKS
+// ============================================================
+function renderTasks(filter = 'all') {
+  const list = document.getElementById('tasks-list');
+  const adminList = document.getElementById('admin-tasks-list');
+
+  const tasks = filter === 'all' ? state.tasks : state.tasks.filter(t => t.difficulty === filter);
+
+  list.innerHTML = tasks.map(t => {
+    const diffColors = { easy: '#DCFCE7:#15803D', medium: '#FEF9C3:#B45309', hard: '#FEE2E2:#DC2626' };
+    const [bg, fg] = (diffColors[t.difficulty] || '#EDE8FF:#6C3EF4').split(':');
+    const diffLabel = { easy: 'সহজ', medium: 'মাঝারি', hard: 'কঠিন' }[t.difficulty];
+    return `
+      <div class="task-card" onclick="openTaskModal('task-${t.id}', ${t.id})">
+        <div class="task-icon" style="background:${bg}">${t.icon}</div>
+        <div class="task-info">
+          <div class="task-name">${t.name}</div>
+          <div class="task-desc">${t.desc}</div>
+        </div>
+        <div class="task-reward">
+          <div class="task-amount">৳${getVipTaskReward(t.reward).toFixed(2)}</div>
+          <div class="task-tag" style="background:${bg}; color:${fg}">${diffLabel}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (adminList) {
+    adminList.innerHTML = state.tasks.map(t => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px">
+        <div>
+          <div style="font-weight:600">${t.icon} ${t.name}</div>
+          <div style="opacity:0.6; font-size:11px; margin-top:2px">৳${t.reward} — ${t.desc}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">🗑</button>
+      </div>`).join('');
+  }
+}
+
+function switchTaskTab(filter, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks(filter);
+}
+
+function openTaskModal(id, taskId) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  document.getElementById('modal-task-title').textContent = task.icon + ' ' + task.name;
+  const vipReward = getVipTaskReward(task.reward);
+  const vipLevel = state.currentUser ? (state.currentUser.vip || 1) : 1;
+  const vipBonus = vipReward > task.reward;
+  document.getElementById('modal-task-body').innerHTML = `
+    <div style="background:var(--bg); border-radius:12px; padding:14px; margin-bottom:16px">
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">${task.desc}</p>
+      <div style="font-size:22px; font-weight:800; color:var(--success)">৳${vipReward.toFixed(2)}</div>
+      ${vipBonus ? `<div style="font-size:11px; background:#DCFCE7; color:#15803D; padding:4px 10px; border-radius:20px; display:inline-block; margin-top:4px">👑 VIP ${vipLevel} বোনাস রেট</div>` : ''}
+      <div style="font-size:12px; color:var(--muted); margin-top:6px">সম্পন্ন করলে এই টাকা আপনার টাস্ক ব্যালেন্সে যোগ হবে</div>
+    </div>
+    <div style="font-size:13px; font-weight:600; margin-bottom:10px">আপনার উত্তর দিন:</div>
+    <div class="form-group">
+      <textarea id="task-answer" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:12px; font-family:inherit; font-size:14px; min-height:80px; outline:none; resize:vertical" placeholder="এখানে উত্তর লিখুন..."></textarea>
+    </div>
+    <button class="btn btn-primary full-btn" onclick="submitTask(${task.id}, ${task.reward})">✅ টাস্ক জমা দিন</button>
+  `;
+  openModal('modal-task');
+}
+
+function getVipTaskReward(baseReward) {
+  if (!state.currentUser) return baseReward;
+  const vipLevel = state.currentUser.vip || 1;
+  const plan = state.vipPlans.find(p => p.level === vipLevel);
+  if (!plan || plan.taskReward <= 0) return baseReward;
+  // VIP taskReward is the reward per task for that level
+  // We use vipPlan.taskReward as the actual reward (admin sets it)
+  return plan.taskReward;
+}
+
+function submitTask(taskId, reward) {
+  const ans = document.getElementById('task-answer').value.trim();
+  if (!ans) { showToast('উত্তর লিখুন'); return; }
+  const actualReward = getVipTaskReward(reward);
+  addEarning('task', actualReward, 'টাস্ক সম্পন্ন - Task #' + taskId);
+  // Referrer commission
+  if (state.currentUser && state.currentUser.referredBy) {
+    const ref = state.users.find(u => u.referCode === state.currentUser.referredBy);
+    if (ref) {
+      ref.balance.refer += state.commissions.task;
+      ref.earnHistory.push({ type: 'refer', desc: 'টাস্ক কমিশন - ' + state.currentUser.name, amount: state.commissions.task, date: new Date().toLocaleDateString('bn-BD') });
+    }
+  }
+  closeModal('modal-task');
+  showToast('🎉 টাস্ক সম্পন্ন! ৳' + actualReward.toFixed(2) + ' যোগ হয়েছে');
+}
+
+function addTask() {
+  const name = document.getElementById('new-task-name').value.trim();
+  const desc = document.getElementById('new-task-desc').value.trim();
+  const reward = parseFloat(document.getElementById('new-task-reward').value) || 0;
+  const diff = document.getElementById('new-task-difficulty').value;
+  if (!name || !reward) { showToast('সব তথ্য পূরণ করুন'); return; }
+  state.tasks.push({ id: Date.now(), name, desc, reward, difficulty: diff, icon: '📋' });
+  document.getElementById('new-task-name').value = '';
+  document.getElementById('new-task-desc').value = '';
+  document.getElementById('new-task-reward').value = '';
+  dbSaveAppConfig();
+  renderTasks();
+  showToast('✅ টাস্ক যোগ হয়েছে');
+}
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  dbSaveAppConfig();
+  renderTasks();
+  showToast('🗑 টাস্ক মুছে ফেলা হয়েছে');
+}
+
+// ============================================================
+// VIDEOS
+// ============================================================
+function renderVideos() {
+  const list = document.getElementById('videos-list');
+  const adminList = document.getElementById('admin-videos-list');
+
+  list.innerHTML = state.videos.map(v => `
+    <div class="task-card" onclick="openVideoModal(${v.id})">
+      <div class="task-icon" style="background:#FEE2E2">🎬</div>
+      <div class="task-info">
+        <div class="task-name">${v.title}</div>
+        <div class="task-desc">⏱ ${v.duration} সেকেন্ড দেখুন</div>
+      </div>
+      <div class="task-reward">
+        <div class="task-amount">৳${v.reward}</div>
+        <div class="task-tag" style="background:#DBEAFE; color:#1D4ED8">ভিডিও</div>
+      </div>
+    </div>`).join('');
+
+  if (adminList) {
+    adminList.innerHTML = state.videos.map(v => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px">
+        <div>
+          <div style="font-weight:600">🎬 ${v.title}</div>
+          <div style="opacity:0.6; font-size:11px; margin-top:2px">৳${v.reward} — ${v.duration}s</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteVideo(${v.id})">🗑</button>
+      </div>`).join('');
+  }
+}
+
+function openVideoModal(videoId) {
+  state.currentVideo = state.videos.find(v => v.id === videoId);
+  if (!state.currentVideo) return;
+  document.getElementById('modal-video-title').textContent = '🎬 ' + state.currentVideo.title;
+  document.getElementById('video-prog').style.width = '0%';
+  document.getElementById('video-status').textContent = 'ভিডিও শুরু করতে প্লে বাটনে চাপুন';
+  document.getElementById('video-claim-btn').disabled = true;
+  document.getElementById('video-claim-btn').textContent = '⏳ ভিডিও দেখুন...';
+  document.getElementById('play-btn-main').style.display = 'flex';
+  state.videoProgress = 0;
+  clearInterval(state.videoTimer);
+  openModal('modal-video');
+}
+
+function startVideo() {
+  if (!state.currentVideo) return;
+  document.getElementById('play-btn-main').style.display = 'none';
+  const duration = state.currentVideo.duration;
+  let elapsed = 0;
+  state.videoTimer = setInterval(() => {
+    elapsed++;
+    state.videoProgress = Math.min((elapsed / duration) * 100, 100);
+    document.getElementById('video-prog').style.width = state.videoProgress + '%';
+    document.getElementById('video-status').textContent = `দেখা হচ্ছে... ${elapsed}/${duration} সেকেন্ড`;
+    if (elapsed >= duration) {
+      clearInterval(state.videoTimer);
+      document.getElementById('video-status').textContent = '✅ ভিডিও সম্পন্ন! পুরস্কার নিন';
+      const btn = document.getElementById('video-claim-btn');
+      btn.disabled = false;
+      btn.textContent = `🎁 ৳${state.currentVideo.reward} নিন`;
+    }
+  }, 100); // faster for demo
+}
+
+function claimVideo() {
+  if (!state.currentVideo) return;
+  const v = state.currentVideo;
+  addEarning('video', v.reward, 'ভিডিও দেখা - ' + v.title);
+  if (state.currentUser && state.currentUser.referredBy) {
+    const ref = state.users.find(u => u.referCode === state.currentUser.referredBy);
+    if (ref) {
+      ref.balance.refer += state.commissions.video;
+      ref.earnHistory.push({ type: 'refer', desc: 'ভিডিও কমিশন - ' + state.currentUser.name, amount: state.commissions.video, date: new Date().toLocaleDateString('bn-BD') });
+    }
+  }
+  closeModal('modal-video');
+  clearInterval(state.videoTimer);
+  showToast('🎉 ৳' + v.reward + ' ভিডিও ব্যালেন্সে যোগ হয়েছে!');
+}
+
+function addVideo() {
+  const title = document.getElementById('new-video-title').value.trim();
+  const url = document.getElementById('new-video-url').value.trim();
+  const reward = parseFloat(document.getElementById('new-video-reward').value) || 0;
+  if (!title || !reward) { showToast('তথ্য পূরণ করুন'); return; }
+  state.videos.push({ id: Date.now(), title, url, reward, duration: 30 });
+  document.getElementById('new-video-title').value = '';
+  document.getElementById('new-video-url').value = '';
+  document.getElementById('new-video-reward').value = '';
+  dbSaveAppConfig();
+  renderVideos();
+  showToast('✅ ভিডিও যোগ হয়েছে');
+}
+
+function deleteVideo(id) {
+  state.videos = state.videos.filter(v => v.id !== id);
+  dbSaveAppConfig();
+  renderVideos();
+  showToast('🗑 ভিডিও মুছে ফেলা হয়েছে');
+}
+
+// ============================================================
+// REFERRAL
+// ============================================================
+function getReferLink() {
+  if (!state.currentUser) return '';
+  return location.origin + location.pathname + '?ref=' + state.currentUser.referCode;
+}
+
+function renderReferral() {
+  if (!state.currentUser) return;
+  document.getElementById('ref-code-display').textContent = getReferLink();
+  const team = state.currentUser.team || [];
+  document.getElementById('team-total').textContent = team.length;
+  document.getElementById('team-active').textContent = team.length;
+  document.getElementById('disp-vref-amt').textContent = state.commissions.video.toFixed(2);
+  document.getElementById('disp-tref-amt').textContent = state.commissions.task.toFixed(2);
+  document.getElementById('disp-vip-ref').textContent = state.commissions.vip;
+
+  const container = document.getElementById('team-members');
+  if (team.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted)"><div style="font-size:40px">👤</div><div style="margin-top:8px">এখনো কোন সদস্য নেই</div></div>`;
+  } else {
+    container.innerHTML = team.map(m => `
+      <div class="member-row">
+        <div class="member-avatar">${m.name.charAt(0)}</div>
+        <div class="member-info">
+          <div class="member-name">${m.name}</div>
+          <div class="member-join">যোগ দিয়েছে: ${m.joinDate}</div>
+        </div>
+        <div class="member-earn">সক্রিয়</div>
+      </div>`).join('');
+  }
+}
+
+function copyRef() {
+  if (!state.currentUser) return;
+  navigator.clipboard.writeText(getReferLink()).catch(() => {});
+  showToast('📋 রেফার লিংক কপি হয়েছে!');
+}
+
+function shareRef() {
+  if (!state.currentUser) return;
+  const link = getReferLink();
+  const msg = `SentMoney তে যোগ দিন ও প্রতিদিন আয় করুন! আমার রেফার লিংক: ${link}`;
+  if (navigator.share) { navigator.share({ title: 'SentMoney', text: msg, url: link }); }
+  else { navigator.clipboard.writeText(msg).catch(() => {}); showToast('📤 লিংক কপি হয়েছে!'); }
+}
+
+// ============================================================
+// WITHDRAW
+// ============================================================
+function calcCharge() {
+  const amount = parseFloat(document.getElementById('w-amount').value) || 0;
+  const preview = document.getElementById('charge-preview');
+  if (amount < 1) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  const charge = Math.floor(amount / 50) * state.settings.chargePerFifty;
+  const net = amount - charge;
+  document.getElementById('c-amount').textContent = amount.toFixed(2);
+  document.getElementById('c-charge').textContent = charge.toFixed(2);
+  document.getElementById('c-net').textContent = net.toFixed(2);
+}
+
+function doWithdraw() {
+  const amount = parseFloat(document.getElementById('w-amount').value) || 0;
+  const phone = document.getElementById('w-phone').value.trim();
+  const method = document.getElementById('w-method').value;
+  const minWd = state.settings.minWithdraw;
+
+  if (!phone) { showToast('মোবাইল নম্বর দিন'); return; }
+  if (amount < minWd) { showToast(`সর্বনিম্ন ৳${minWd} উইথড্র করুন`); return; }
+  if (!state.currentUser) return;
+
+  const total = Object.values(state.currentUser.balance).reduce((a, b) => a + b, 0);
+  if (amount > total) { showToast('পর্যাপ্ত ব্যালেন্স নেই'); return; }
+
+  const charge = Math.floor(amount / 50) * state.settings.chargePerFifty;
+  const net = amount - charge;
+
+  // Deduct proportionally
+  const ratio = amount / total;
+  const b = state.currentUser.balance;
+  b.video = Math.max(0, b.video - b.video * ratio);
+  b.task = Math.max(0, b.task - b.task * ratio);
+  b.refer = Math.max(0, b.refer - b.refer * ratio);
+  b.bonus = Math.max(0, b.bonus - b.bonus * ratio);
+
+  const wd = { id: Date.now(), amount, charge, net, method, phone, status: 'pending', date: new Date().toLocaleDateString('bn-BD'), userName: state.currentUser.name, userId: state.currentUser.id };
+  state.withdrawals.push(wd);
+  state.currentUser.withdrawHistory.push(wd);
+  dbSaveWithdrawal(wd); dbSaveUser(state.currentUser);
+
+  updateBalanceDisplay();
+  renderWithdrawHistory();
+  renderAdminWithdrawList();
+  document.getElementById('w-amount').value = '';
+  document.getElementById('w-phone').value = '';
+  document.getElementById('charge-preview').style.display = 'none';
+
+  showToast(`✅ ৳${net} উইথড্র অনুরোধ পাঠানো হয়েছে!`);
+}
+
+function renderWithdrawHistory() {
+  if (!state.currentUser) return;
+  const container = document.getElementById('withdraw-history');
+  const list = state.currentUser.withdrawHistory;
+  if (!list.length) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted)"><div style="font-size:40px">📋</div><div style="margin-top:8px">কোন উইথড্র নেই</div></div>`;
+    return;
+  }
+  container.innerHTML = list.map(w => {
+    const statusClass = w.status === 'approved' ? 'badge-success' : w.status === 'rejected' ? 'badge-danger' : 'badge-warning';
+    const statusLabel = w.status === 'approved' ? '✅ সম্পন্ন' : w.status === 'rejected' ? '❌ বাতিল' : '⏳ অপেক্ষায়';
+    return `
+      <div class="history-item">
+        <div class="hi-icon" style="background:var(--primary-light)">💸</div>
+        <div class="hi-info">
+          <div class="hi-title">${w.method.toUpperCase()} — ${w.phone}</div>
+          <div class="hi-date">${w.date} | চার্জ: ৳${w.charge}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hi-amount" style="color:var(--success)">৳${w.net}</div>
+          <div class="badge ${statusClass}" style="margin-top:4px; font-size:10px">${statusLabel}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ============================================================
+// DAILY BONUS
+// ============================================================
+function showDailyBonus() { openModal('modal-bonus'); }
+
+function claimBonus() {
+  addEarning('bonus', 3, 'দৈনিক বোনাস — দিন ২');
+  closeModal('modal-bonus');
+  showToast('🎁 ৳3 বোনাস পেয়েছেন!');
+}
+
+// ============================================================
+// VIP
+// ============================================================
+function renderVipCards() {
+  const container = document.getElementById('vip-cards-container');
+  if (!container) return;
+  const crowns = ['🥉','🥈','🥇','💎','🔥'];
+  const classes = ['v1','v2','v3','v4','v5'];
+  const userVip = state.currentUser ? (state.currentUser.vip || 1) : 1;
+  container.innerHTML = state.vipPlans.map((p, i) => {
+    const isCurrent = p.level === userVip;
+    const isOwned = p.level <= userVip;
+    return `
+      <div class="vip-card ${classes[i] || 'v1'}" ${!isOwned ? `onclick="upgradeVip(${p.level})"` : ''} style="${p.level === 5 ? 'grid-column:1/-1' : ''}">
+        ${isCurrent ? '<div class="vip-current">বর্তমান</div>' : ''}
+        <div class="vip-crown">${crowns[i] || '👑'}</div>
+        <div class="vip-name">${p.name}</div>
+        <div class="vip-tasks">দৈনিক ${p.dailyTasks} টাস্ক</div>
+        <div class="vip-earn">৳${p.taskReward}/টাস্ক</div>
+        <div style="font-size:11px; opacity:0.8; margin-top:6px">
+          ${p.price === 0 ? 'অ্যাক্টিভেশনের সাথে' : 'আপগ্রেড: ৳' + p.price}
+        </div>
+        ${!isOwned ? `<button class="btn btn-sm" style="margin-top:8px; background:rgba(255,255,255,0.9); color:#333; font-size:10px; width:${p.level===5?'50%':'100%'}" onclick="event.stopPropagation(); upgradeVip(${p.level})">আপগ্রেড করুন</button>` : ''}
+        ${isOwned && !isCurrent ? '<div style="font-size:11px; background:rgba(255,255,255,0.2); border-radius:6px; padding:3px 8px; margin-top:6px">✅ কেনা আছে</div>' : ''}
+      </div>`;
+  }).join('');
+}
+
+function upgradeVip(level) {
+  const plan = state.vipPlans.find(p => p.level === level);
+  if (!plan || !state.currentUser) return;
+  if (state.currentUser.vip >= level) { showToast('আপনি ইতিমধ্যে এই VIP লেভেলে আছেন'); return; }
+  // Show payment modal
+  document.getElementById('vip-pay-level').textContent = level;
+  document.getElementById('vip-pay-name').textContent = plan.name;
+  document.getElementById('vip-pay-price').textContent = plan.price;
+  document.getElementById('vip-pay-number').textContent = state.settings.paymentNumber || 'অ্যাডমিন কর্তৃক নির্ধারিত হয়নি';
+  document.getElementById('vip-pay-method').textContent = state.settings.paymentMethod || 'বিকাশ/নগদ/রকেট';
+  document.getElementById('vip-txid').value = '';
+  state._pendingVipLevel = level;
+  openModal('modal-vip-pay');
+}
+
+async function submitVipPayment() {
+  const txid = document.getElementById('vip-txid').value.trim();
+  if (!txid) { showToast('ট্রানজেকশন আইডি দিন'); return; }
+  const level = state._pendingVipLevel;
+  const plan = state.vipPlans.find(p => p.level === level);
+  showLoading('পাঠানো হচ্ছে...');
+  const req = { id: Date.now(), userId: state.currentUser.id, userName: state.currentUser.name,
+    phone: state.currentUser.phone, level, planName: plan.name, price: plan.price,
+    txid, status: 'pending', date: new Date().toLocaleDateString('bn-BD') };
+  state.vipRequests.push(req);
+  await dbSaveVipRequest(req);
+  hideLoading();
+  closeModal('modal-vip-pay');
+  showToast('✅ VIP আপগ্রেড রিকোয়েস্ট পাঠানো হয়েছে! অ্যাডমিন অনুমোদনের পর সক্রিয় হবে।');
+}
+
+// ============================================================
+// EARN HISTORY
+// ============================================================
+function renderEarnHistory() {
+  if (!state.currentUser) return;
+  const container = document.getElementById('earn-history-list');
+  const list = state.currentUser.earnHistory;
+  if (!list.length) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted)"><div style="font-size:40px">📈</div><div style="margin-top:8px">এখনো কোন আয় নেই</div></div>`;
+    return;
+  }
+  const icons = { video: '🎬', task: '📋', refer: '👥', bonus: '🎁' };
+  const colors = { video: '#FEE2E2', task: '#EDE8FF', refer: '#DCFCE7', bonus: '#FEF9C3' };
+  container.innerHTML = [...list].reverse().map(e => `
+    <div class="history-item">
+      <div class="hi-icon" style="background:${colors[e.type] || '#EDE8FF'}">${icons[e.type] || '💰'}</div>
+      <div class="hi-info">
+        <div class="hi-title">${e.desc}</div>
+        <div class="hi-date">${e.date}</div>
+      </div>
+      <div class="hi-amount" style="color:var(--success)">+৳${e.amount.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+function switchEarnTab(type, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  // Filter history
+  if (!state.currentUser) return;
+  const container = document.getElementById('earn-history-list');
+  const list = type === 'all' ? state.currentUser.earnHistory : state.currentUser.earnHistory.filter(e => e.type === type);
+  if (!list.length) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted)">কোন আয় নেই</div>`;
+    return;
+  }
+  const icons = { video: '🎬', task: '📋', refer: '👥', bonus: '🎁' };
+  const colors = { video: '#FEE2E2', task: '#EDE8FF', refer: '#DCFCE7', bonus: '#FEF9C3' };
+  container.innerHTML = [...list].reverse().map(e => `
+    <div class="history-item">
+      <div class="hi-icon" style="background:${colors[e.type] || '#EDE8FF'}">${icons[e.type] || '💰'}</div>
+      <div class="hi-info">
+        <div class="hi-title">${e.desc}</div>
+        <div class="hi-date">${e.date}</div>
+      </div>
+      <div class="hi-amount" style="color:var(--success)">+৳${e.amount.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function showAdminLogin() { showScreen('screen-admin-login'); }
+
+async function doAdminLogin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const pass = document.getElementById('admin-pass').value;
+  if (email === state.adminCredentials.email && pass === state.adminCredentials.password) {
+    showLoading('অ্যাডমিন লোড হচ্ছে...');
+    await loadAdminData();
+    hideLoading();
+    renderAdminDashboard();
+    renderAdminUserList();
+    renderAdminWithdrawList();
+    renderVideos();
+    renderTasks();
+    renderAdminVipPlans();
+    syncSettingsInputs();
+    showScreen('screen-admin');
+  } else {
+    showToast('ভুল অ্যাডমিন পাসওয়ার্ড');
+  }
+}
+
+function showAdminTab(tab) {
+  document.querySelectorAll('.admin-subpage').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('admin-tab-' + tab);
+  if (el) el.classList.add('active');
+  const nav = document.getElementById('anav-' + tab.split('-')[0]);
+  if (nav) nav.classList.add('active');
+}
+
+function syncSettingsInputs() {
+  const s = state.settings;
+  const fields = {
+    'set-minwd': s.minWithdraw, 'set-charge': s.chargePerFifty,
+    'set-actfee': s.activationFee, 'set-paynumber': s.paymentNumber,
+    'set-paymethod': s.paymentMethod, 'set-wdnumber': s.withdrawPayNumber,
+    'set-wdmethod': s.withdrawPayMethod
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && val !== undefined) el.value = val;
+  });
+  const c = state.commissions;
+  const cFields = {'comm-video': c.video, 'comm-task': c.task, 'comm-vip': c.vip, 'comm-act': c.activation};
+  Object.entries(cFields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && val !== undefined) el.value = val;
+  });
+  // admin credentials
+  const adminEmailEl = document.getElementById('set-admin-email');
+  const adminPassEl = document.getElementById('set-admin-pass');
+  if (adminEmailEl) adminEmailEl.value = state.adminCredentials.email;
+  if (adminPassEl) adminPassEl.value = '';
+}
+
+function renderAdminDashboard() {
+  document.getElementById('stat-users').textContent = state.users.length;
+  document.getElementById('stat-active').textContent = state.users.filter(u => u.active).length;
+  document.getElementById('stat-pending').textContent = state.withdrawals.filter(w => w.status === 'pending').length;
+  const actPending = state.activationRequests.filter(r => r.status === 'pending').length;
+  const actBadge = document.getElementById('stat-act-pending');
+  if (actBadge) actBadge.textContent = actPending;
+  renderAdminActivationRequests();
+  renderAdminVipRequests();
+
+  const pendingList = state.withdrawals.filter(w => w.status === 'pending');
+  const container = document.getElementById('admin-recent-withdraw');
+  if (!pendingList.length) {
+    container.innerHTML = '<div style="text-align:center; padding:16px; opacity:0.5">কোন পেন্ডিং উইথড্র নেই</div>';
+  } else {
+    container.innerHTML = pendingList.slice(0, 3).map(w => `
+      <div class="pending-withdraw">
+        <div class="pw-header"><div class="pw-name">${w.userName}</div><div class="pw-amount">৳${w.net}</div></div>
+        <div class="pw-detail">${w.method.toUpperCase()} → ${w.phone} | ${w.date}</div>
+        <div class="pw-actions">
+          <button class="btn btn-success btn-sm" onclick="approveWithdraw(${w.id})">✅ অনুমোদন</button>
+          <button class="btn btn-danger btn-sm" onclick="rejectWithdraw(${w.id})">❌ বাতিল</button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function renderAdminUserList(filter = '') {
+  const container = document.getElementById('admin-user-list');
+  const list = filter ? state.users.filter(u => u.name.includes(filter) || u.phone.includes(filter)) : state.users;
+  container.innerHTML = list.map(u => {
+    const total = Object.values(u.balance).reduce((a, b) => a + b, 0);
+    return `
+      <div style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px">
+          <div>
+            <div style="font-weight:700; font-size:13px">${u.name}</div>
+            <div style="font-size:11px; opacity:0.6">${u.phone} | VIP ${u.vip} | ৳${total.toFixed(2)}</div>
+          </div>
+          <div class="badge ${u.active ? 'badge-success' : 'badge-warning'}" style="font-size:10px">
+            ${u.active ? '✅ সক্রিয়' : '⏳ অপেক্ষায়'}
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap">
+          ${!u.active ? `<button class="btn btn-success btn-sm" onclick="activateUser(${u.id})">✅ অ্যাক্টিভ করুন</button>` : ''}
+          <button class="btn btn-accent btn-sm" onclick="addBalancePrompt(${u.id})">➕ ব্যালেন্স</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">🗑 মুছুন</button>
+        </div>
+      </div>`;
+  }).join('') || '<div style="opacity:0.5; text-align:center; padding:16px">কোন ইউজার নেই</div>';
+}
+
+function searchUsers(val) { renderAdminUserList(val); }
+
+async function activateUser(id) {
+  const u = state.users.find(u => u.id === id);
+  if (u) { u.active = true; await dbSaveUser(u); showToast('✅ ইউজার অ্যাক্টিভ করা হয়েছে'); renderAdminUserList(); renderAdminActivationRequests(); }
+}
+
+function renderAdminActivationRequests() {
+  const container = document.getElementById('admin-activation-list');
+  if (!container) return;
+  const list = state.activationRequests.filter(r => r.status === 'pending');
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center; padding:16px; opacity:0.5; color:white">কোন পেন্ডিং রিকোয়েস্ট নেই</div>';
+    return;
+  }
+  container.innerHTML = list.map(r => `
+    <div class="pending-withdraw" style="color:white">
+      <div class="pw-header"><div class="pw-name">${r.userName}</div><div class="pw-amount">৳${r.amount}</div></div>
+      <div class="pw-detail">${r.phone} | TX: ${r.txid} | ${r.date}</div>
+      <div class="pw-actions">
+        <button class="btn btn-success btn-sm" onclick="approveActivation(${r.id})">✅ অনুমোদন</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectActivation(${r.id})">❌ বাতিল</button>
+      </div>
+    </div>`).join('');
+}
+
+async function approveActivation(id) {
+  const req = state.activationRequests.find(r => r.id === id);
+  if (req) {
+    req.status = 'approved';
+    const u = state.users.find(u => u.id === req.userId);
+    if (u) { u.active = true; await dbSaveUser(u); }
+    await dbSaveActivationRequest(req);
+    renderAdminActivationRequests();
+    renderAdminUserList();
+    renderAdminDashboard();
+    showToast('✅ অ্যাকাউন্ট অ্যাক্টিভ করা হয়েছে');
+  }
+}
+
+async function rejectActivation(id) {
+  const req = state.activationRequests.find(r => r.id === id);
+  if (req) { req.status = 'rejected'; await dbSaveActivationRequest(req); renderAdminActivationRequests(); showToast('❌ রিকোয়েস্ট বাতিল'); }
+}
+
+function renderAdminVipRequests() {
+  const container = document.getElementById('admin-vip-req-list');
+  if (!container) return;
+  const list = state.vipRequests.filter(r => r.status === 'pending');
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center; padding:16px; opacity:0.5; color:white">কোন পেন্ডিং VIP রিকোয়েস্ট নেই</div>';
+    return;
+  }
+  container.innerHTML = list.map(r => `
+    <div class="pending-withdraw" style="color:white">
+      <div class="pw-header"><div class="pw-name">${r.userName} → ${r.planName}</div><div class="pw-amount">৳${r.price}</div></div>
+      <div class="pw-detail">${r.phone} | TX: ${r.txid} | ${r.date}</div>
+      <div class="pw-actions">
+        <button class="btn btn-success btn-sm" onclick="approveVipReq(${r.id})">✅ অনুমোদন</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectVipReq(${r.id})">❌ বাতিল</button>
+      </div>
+    </div>`).join('');
+}
+
+async function approveVipReq(id) {
+  const req = state.vipRequests.find(r => r.id === id);
+  if (req) {
+    req.status = 'approved';
+    const u = state.users.find(u => u.id === req.userId);
+    if (u) {
+      u.vip = req.level;
+      await dbSaveUser(u);
+      if (state.currentUser && state.currentUser.id === u.id) {
+        state.currentUser.vip = req.level;
+        renderTasks();
+        renderVipCards();
+      }
+    }
+    await dbSaveVipRequest(req);
+    renderAdminVipRequests();
+    showToast('✅ VIP আপগ্রেড অনুমোদিত');
+  }
+}
+
+async function rejectVipReq(id) {
+  const req = state.vipRequests.find(r => r.id === id);
+  if (req) { req.status = 'rejected'; await dbSaveVipRequest(req); renderAdminVipRequests(); showToast('❌ VIP রিকোয়েস্ট বাতিল'); }
+}
+
+async function deleteUser(id) {
+  state.users = state.users.filter(u => u.id !== id);
+  await dbDeleteUser(id);
+  renderAdminUserList();
+  showToast('🗑 ইউজার মুছে ফেলা হয়েছে');
+}
+
+async function addBalancePrompt(id) {
+  const amt = prompt('কত টাকা যোগ করবেন?');
+  if (!amt) return;
+  const u = state.users.find(u => u.id === id);
+  if (u) {
+    u.balance.bonus += parseFloat(amt);
+    await dbSaveUser(u);
+    showToast('✅ ৳' + amt + ' ব্যালেন্স যোগ হয়েছে');
+    renderAdminUserList();
+  }
+}
+
+function renderAdminWithdrawList() {
+  const container = document.getElementById('admin-withdraw-list');
+  const list = state.withdrawals.filter(w => w.status === 'pending');
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center; padding:24px; opacity:0.5; color:white">কোন পেন্ডিং উইথড্র নেই</div>';
+    return;
+  }
+  container.innerHTML = list.map(w => `
+    <div class="pending-withdraw" style="color:white">
+      <div class="pw-header"><div class="pw-name">${w.userName}</div><div class="pw-amount">৳${w.net}</div></div>
+      <div class="pw-detail">${w.method.toUpperCase()} → ${w.phone} | অনুরোধ: ৳${w.amount} | চার্জ: ৳${w.charge} | ${w.date}</div>
+      <div class="pw-actions">
+        <button class="btn btn-success btn-sm" onclick="approveWithdraw(${w.id})">✅ অনুমোদন</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectWithdraw(${w.id})">❌ বাতিল</button>
+      </div>
+    </div>`).join('');
+}
+
+async function approveWithdraw(id) {
+  const w = state.withdrawals.find(w => w.id === id);
+  if (w) {
+    w.status = 'approved';
+    const userW = state.users.flatMap(u => u.withdrawHistory).find(wh => wh.id === id);
+    if (userW) userW.status = 'approved';
+    await dbSaveWithdrawal(w);
+    const ownerUser = state.users.find(u => u.withdrawHistory.find(wh => wh.id === id));
+    if (ownerUser) await dbSaveUser(ownerUser);
+    renderAdminWithdrawList();
+    renderAdminDashboard();
+    renderWithdrawHistory();
+    showToast('✅ উইথড্র অনুমোদিত হয়েছে');
+  }
+}
+
+async function rejectWithdraw(id) {
+  const w = state.withdrawals.find(w => w.id === id);
+  if (w) {
+    w.status = 'rejected';
+    const u = state.users.find(u => u.withdrawHistory.find(wh => wh.id === id));
+    if (u) {
+      u.balance.bonus += w.amount;
+      const userW = u.withdrawHistory.find(wh => wh.id === id);
+      if (userW) userW.status = 'rejected';
+      await dbSaveUser(u);
+    }
+    await dbSaveWithdrawal(w);
+    renderAdminWithdrawList();
+    renderAdminDashboard();
+    updateBalanceDisplay();
+    showToast('❌ উইথড্র বাতিল ও ব্যালেন্স ফেরত দেওয়া হয়েছে');
+  }
+}
+
+function saveSetting(key) {
+  const map = { minwd: 'minWithdraw', charge: 'chargePerFifty', actfee: 'activationFee',
+    paynumber: 'paymentNumber', paymethod: 'paymentMethod',
+    wdnumber: 'withdrawPayNumber', wdmethod: 'withdrawPayMethod' };
+  const inputMap = { minwd: 'set-minwd', charge: 'set-charge', actfee: 'set-actfee',
+    paynumber: 'set-paynumber', paymethod: 'set-paymethod',
+    wdnumber: 'set-wdnumber', wdmethod: 'set-wdmethod' };
+  const val = document.getElementById(inputMap[key]).value;
+  state.settings[map[key]] = isNaN(val) ? val : (val === '' ? val : parseFloat(val));
+  if (key === 'paynumber' || key === 'paymethod') {
+    state.settings[map[key]] = val; // keep as string
+  }
+  if (key === 'wdnumber' || key === 'wdmethod') {
+    state.settings[map[key]] = val;
+    const el = document.getElementById('withdraw-send-number');
+    if (el) el.textContent = state.settings.withdrawPayNumber + ' (' + state.settings.withdrawPayMethod + ')';
+  }
+  dbSaveAppConfig();
+  showToast('✅ সেটিং সেভ হয়েছে');
+}
+
+function saveCommission(type) {
+  const map = { video: 'comm-video', task: 'comm-task', vip: 'comm-vip', act: 'comm-act' };
+  const val = parseFloat(document.getElementById(map[type]).value) || 0;
+  state.commissions[type] = val;
+  dbSaveAppConfig();
+  renderReferral();
+  showToast('✅ কমিশন সেভ হয়েছে');
+}
+
+function sendNotice() {
+  const text = document.getElementById('notice-text').value.trim();
+  if (!text) { showToast('নোটিশ লিখুন'); return; }
+  state.notices.push({ text, date: new Date().toLocaleDateString('bn-BD') });
+  document.getElementById('notice-text').value = '';
+  dbSaveAppConfig();
+  const list = document.getElementById('notices-list');
+  list.innerHTML = state.notices.map(n => `
+    <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px">
+      <div>${n.text}</div>
+      <div style="font-size:11px; opacity:0.5; margin-top:4px">${n.date}</div>
+    </div>`).join('');
+  showToast('📢 নোটিশ পাঠানো হয়েছে');
+}
+
+function renderAdminVipPlans() {
+  const container = document.getElementById('admin-vip-plans');
+  if (!container) return;
+  container.innerHTML = state.vipPlans.map(p => `
+    <div class="admin-section" style="margin-bottom:10px">
+      <div class="admin-section-title" style="justify-content:space-between">
+        <span>👑 ${p.name} (লেভেল ${p.level})</span>
+        <button class="btn btn-success btn-sm" onclick="saveVipPlan(${p.level})">✅ সেভ</button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">প্ল্যান নাম</div>
+        <div class="inline-edit">
+          <input type="text" id="vip-name-${p.level}" value="${p.name}" style="width:120px">
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">আপগ্রেড মূল্য (৳)</div>
+        <div class="inline-edit">
+          <input type="number" id="vip-price-${p.level}" value="${p.price}">
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">দৈনিক টাস্ক সংখ্যা</div>
+        <div class="inline-edit">
+          <input type="number" id="vip-tasks-${p.level}" value="${p.dailyTasks}">
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">প্রতি টাস্ক আয় (৳)</div>
+        <div class="inline-edit">
+          <input type="number" id="vip-reward-${p.level}" value="${p.taskReward}" step="0.50">
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">ভিডিও লিমিট/দিন</div>
+        <div class="inline-edit">
+          <input type="number" id="vip-videolimit-${p.level}" value="${p.videoLimit||10}">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function changeAdminCredentials() {
+  const newEmail = document.getElementById('set-admin-email').value.trim();
+  const newPass = document.getElementById('set-admin-pass').value.trim();
+  const oldPass = document.getElementById('set-admin-oldpass').value.trim();
+  if (!oldPass) { showToast('বর্তমান পাসওয়ার্ড দিন'); return; }
+  if (oldPass !== state.adminCredentials.password) { showToast('❌ বর্তমান পাসওয়ার্ড ভুল'); return; }
+  if (newEmail) state.adminCredentials.email = newEmail;
+  if (newPass) state.adminCredentials.password = newPass;
+  dbSaveAppConfig();
+  document.getElementById('set-admin-pass').value = '';
+  document.getElementById('set-admin-oldpass').value = '';
+  showToast('✅ অ্যাডমিন ক্রেডেনশিয়াল পরিবর্তন হয়েছে');
+}
+
+function saveVipPlan(level) {
+  const plan = state.vipPlans.find(p => p.level === level);
+  if (!plan) return;
+  plan.name = document.getElementById('vip-name-' + level).value || plan.name;
+  plan.price = parseFloat(document.getElementById('vip-price-' + level).value) || 0;
+  plan.dailyTasks = parseInt(document.getElementById('vip-tasks-' + level).value) || 0;
+  plan.taskReward = parseFloat(document.getElementById('vip-reward-' + level).value) || 0;
+  plan.videoLimit = parseInt(document.getElementById('vip-videolimit-' + level).value) || 10;
+  dbSaveAppConfig();
+  renderAdminVipPlans();
+  renderTasks();
+  renderVipCards();
+  showToast('✅ VIP ' + level + ' প্ল্যান সেভ হয়েছে');
+}
+
+// ============================================================
+// PASSWORD TOGGLE
+// ============================================================
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.textContent = isHidden ? '🙈' : '👁';
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modal-video') { clearInterval(state.videoTimer); }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// ============================================================
+// SUPABASE - ADMIN DATA LOADER
+// ============================================================
+async function loadAdminData() {
+  state.users = await dbLoadAllUsers();
+  state.withdrawals = await dbLoadWithdrawals();
+  state.activationRequests = await dbLoadActivationRequests();
+  state.vipRequests = await dbLoadVipRequests();
+}
+
+// ============================================================
+// LOCAL SESSION (session only - for current tab)
+// ============================================================
+function saveSession() {
+  try {
+    sessionStorage.setItem('sm_uid', state.currentUser ? String(state.currentUser.id) : '');
+  } catch(e) {}
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
+});
+
+// Auto-fill referral code from URL (?ref=CODE)
+(function() {
+  const params = new URLSearchParams(location.search);
+  const ref = params.get('ref');
+  if (ref) {
+    const el = document.getElementById('reg-ref');
+    if (el) el.value = ref;
+  }
+})();
+
+// ============================================================
+// AUTO DATABASE SETUP + STARTUP
+// ============================================================
+
+// এই SQL গুলো Supabase REST API দিয়ে auto run হবে
+const _SETUP_SQL = `CREATE TABLE IF NOT EXISTS app_config (id INT PRIMARY KEY DEFAULT 1,settings JSONB DEFAULT '{}',commissions JSONB DEFAULT '{}',vip_plans JSONB DEFAULT '[]',videos JSONB DEFAULT '[]',tasks JSONB DEFAULT '[]',notices JSONB DEFAULT '[]',admin_credentials JSONB DEFAULT '{}',updated_at TIMESTAMPTZ DEFAULT NOW());CREATE TABLE IF NOT EXISTS users (id BIGINT PRIMARY KEY,name TEXT NOT NULL,phone TEXT UNIQUE NOT NULL,password TEXT NOT NULL,vip INT DEFAULT 1,active BOOLEAN DEFAULT FALSE,balance JSONB DEFAULT '{"video":0,"task":0,"refer":0,"bonus":0}',refer_code TEXT UNIQUE,referred_by TEXT,team JSONB DEFAULT '[]',join_date TEXT,tasks_done_today INT DEFAULT 0,videos_done_today INT DEFAULT 0,withdraw_history JSONB DEFAULT '[]',earn_history JSONB DEFAULT '[]',created_at TIMESTAMPTZ DEFAULT NOW());CREATE TABLE IF NOT EXISTS withdrawals (id BIGINT PRIMARY KEY,user_id BIGINT,user_name TEXT,amount NUMERIC,charge NUMERIC,net NUMERIC,method TEXT,phone TEXT,status TEXT DEFAULT 'pending',date TEXT,created_at TIMESTAMPTZ DEFAULT NOW());CREATE TABLE IF NOT EXISTS activation_requests (id BIGINT PRIMARY KEY,user_id BIGINT,user_name TEXT,phone TEXT,txid TEXT,amount NUMERIC,status TEXT DEFAULT 'pending',date TEXT,created_at TIMESTAMPTZ DEFAULT NOW());CREATE TABLE IF NOT EXISTS vip_requests (id BIGINT PRIMARY KEY,user_id BIGINT,user_name TEXT,phone TEXT,level INT,plan_name TEXT,price NUMERIC,txid TEXT,status TEXT DEFAULT 'pending',date TEXT,created_at TIMESTAMPTZ DEFAULT NOW());ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;ALTER TABLE users ENABLE ROW LEVEL SECURITY;ALTER TABLE withdrawals ENABLE ROW LEVEL SECURITY;ALTER TABLE activation_requests ENABLE ROW LEVEL SECURITY;ALTER TABLE vip_requests ENABLE ROW LEVEL SECURITY;DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_config' AND policyname='allow_all_app_config') THEN CREATE POLICY "allow_all_app_config" ON app_config FOR ALL TO anon USING (true) WITH CHECK (true); END IF; IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='users' AND policyname='allow_all_users') THEN CREATE POLICY "allow_all_users" ON users FOR ALL TO anon USING (true) WITH CHECK (true); END IF; IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='withdrawals' AND policyname='allow_all_withdrawals') THEN CREATE POLICY "allow_all_withdrawals" ON withdrawals FOR ALL TO anon USING (true) WITH CHECK (true); END IF; IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='activation_requests' AND policyname='allow_all_activation_requests') THEN CREATE POLICY "allow_all_activation_requests" ON activation_requests FOR ALL TO anon USING (true) WITH CHECK (true); END IF; IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='vip_requests' AND policyname='allow_all_vip_requests') THEN CREATE POLICY "allow_all_vip_requests" ON vip_requests FOR ALL TO anon USING (true) WITH CHECK (true); END IF; END $$;`;
+
+async function autoSetupDatabase() {
+  const tables = ['app_config', 'users', 'withdrawals', 'activation_requests', 'vip_requests'];
+  const missing = [];
+
+  for (const t of tables) {
+    try {
+      const { error } = await db.from(t).select('id').limit(1);
+      if (error && (error.code === '42P01' || (error.message && (error.message.includes('does not exist') || error.message.includes('relation'))))) {
+        missing.push(t);
+      }
+    } catch(e) {
+      missing.push(t);
+    }
+  }
+
+  if (missing.length === 0) return true;
+
+  // টেবিল নেই — RPC দিয়ে auto-create চেষ্টা করো
+  showLoading('ডেটাবেজ তৈরি হচ্ছে...');
+  try {
+    const { error } = await db.rpc('exec_sql', { sql: _SETUP_SQL });
+    if (!error) {
+      // সফল — আবার চেক করো
+      for (const t of tables) {
+        const { error: e2 } = await db.from(t).select('id').limit(1);
+        if (e2) { hideLoading(); showSetupModal(); return false; }
+      }
+      return true;
+    }
+  } catch(e) {}
+
+  // RPC নেই — setup modal দেখাও
+  hideLoading();
+  showSetupModal();
+  return false;
+}
+
+function showSetupModal() {
+  document.getElementById('auto-setup-modal').style.display = 'flex';
+}
+
+async function startApp() {
+  showLoading('অ্যাপ লোড হচ্ছে...');
+
+  // 1. DB চেক করো
+  const dbReady = await autoSetupDatabase();
+  if (!dbReady) return;
+
+  // 2. Config লোড করো
+  try {
+    const config = await dbLoadAppConfig();
+    if (config) {
+      if (config.settings) state.settings = Object.assign(state.settings, config.settings);
+      if (config.commissions) state.commissions = Object.assign(state.commissions, config.commissions);
+      if (config.vip_plans && config.vip_plans.length) state.vipPlans = config.vip_plans;
+      if (config.videos && config.videos.length) state.videos = config.videos;
+      if (config.tasks && config.tasks.length) state.tasks = config.tasks;
+      if (config.notices) state.notices = config.notices;
+      if (config.admin_credentials) state.adminCredentials = Object.assign(state.adminCredentials, config.admin_credentials);
+    } else {
+      await dbSaveAppConfig();
+    }
+  } catch(e) { console.warn('Config load error', e); }
+
+  // 3. Session check (auto-login)
+  try {
+    const uid = sessionStorage.getItem('sm_uid');
+    if (uid) {
+      const { data } = await db.from('users').select('*').eq('id', uid).single();
+      if (data) {
+        state.currentUser = dbRowToUser(data);
+        hideLoading();
+        if (!state.currentUser.active) { showActivationScreen(); }
+        else { enterApp(); }
+        return;
+      }
+    }
+  } catch(e) {}
+
+  hideLoading();
+  showScreen('screen-login');
+}
+
+startApp();
+window.addEventListener('beforeunload', () => { saveSession(); });
+</script>
+
+<!-- ====================================================
+     AUTO SETUP MODAL — টেবিল না থাকলে দেখাবে
+     ==================================================== -->
+<div id="auto-setup-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:linear-gradient(145deg,#4C2BC0,#6C3EF4); overflow-y:auto; padding:20px; align-items:flex-start; justify-content:center; font-family:'Noto Sans Bengali',sans-serif">
+  <div style="max-width:520px; width:100%; margin:20px auto; color:white">
+
+    <!-- Header -->
+    <div style="text-align:center; margin-bottom:28px; padding-top:12px">
+      <div style="font-size:52px; margin-bottom:8px">🚀</div>
+      <h2 style="font-size:22px; font-weight:800; margin:0">প্রথমবার সেটআপ</h2>
+      <p style="opacity:0.75; font-size:13px; margin-top:8px; line-height:1.6">একবারই করতে হবে। নিচের SQL কোডটি Supabase-এ রান করলেই অ্যাপ সম্পূর্ণ রেডি হয়ে যাবে।</p>
+    </div>
+
+    <!-- Steps -->
+    <div style="background:rgba(255,255,255,0.1); border-radius:16px; padding:18px; margin-bottom:16px">
+      <div style="font-size:13px; font-weight:700; margin-bottom:14px; letter-spacing:0.3px">📋 মাত্র ৩টি ধাপ:</div>
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <div style="display:flex; align-items:center; gap:12px">
+          <div style="min-width:32px; height:32px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px">১</div>
+          <div style="font-size:13px; line-height:1.5"><a href="https://supabase.com/dashboard" target="_blank" style="color:#FCD34D; font-weight:700; text-decoration:none">supabase.com/dashboard</a> খুলুন → আপনার project → <b>SQL Editor</b></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px">
+          <div style="min-width:32px; height:32px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px">২</div>
+          <div style="font-size:13px; line-height:1.5">নিচের <b>📋 কপি</b> বাটন চাপুন → SQL Editor-এ পেস্ট করুন → <b>Run</b> চাপুন</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px">
+          <div style="min-width:32px; height:32px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px">৩</div>
+          <div style="font-size:13px; line-height:1.5">সফল হলে নিচের <b>✅ হয়ে গেছে</b> বাটন চাপুন</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL Box -->
+    <div style="position:relative; margin-bottom:16px">
+      <div style="background:#0D0A1E; border-radius:14px; padding:14px; padding-top:42px; overflow:hidden">
+        <div style="position:absolute; top:10px; left:14px; right:14px; display:flex; align-items:center; justify-content:space-between">
+          <span style="font-size:11px; opacity:0.5; font-family:monospace">SQL</span>
+          <div style="display:flex; gap:8px">
+            <button onclick="setupCopySql()" id="setup-copy-btn" style="background:rgba(255,255,255,0.15); border:none; color:white; padding:5px 14px; border-radius:20px; cursor:pointer; font-size:12px; font-weight:700; font-family:inherit">📋 কপি করুন</button>
+            <button onclick="setupDownloadSql()" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:5px 12px; border-radius:20px; cursor:pointer; font-size:12px; font-family:inherit">⬇️</button>
+          </div>
+        </div>
+        <pre style="margin:0; font-size:10.5px; color:#86EFAC; line-height:1.7; font-family:monospace; overflow-x:auto; white-space:pre-wrap; max-height:220px; overflow-y:auto" id="setup-sql-pre">-- SentMoney Database Setup
+-- ⚡ এই ২ লাইন প্রথমে রান করুন (Auto-Setup চালু হবে):
+CREATE OR REPLACE FUNCTION exec_sql(sql text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $f$ BEGIN EXECUTE sql; END; $f$;
+GRANT EXECUTE ON FUNCTION exec_sql(text) TO anon;
+-- তারপর বাকি SQL:
+CREATE TABLE IF NOT EXISTS app_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  settings JSONB DEFAULT '{}',
+  commissions JSONB DEFAULT '{}',
+  vip_plans JSONB DEFAULT '[]',
+  videos JSONB DEFAULT '[]',
+  tasks JSONB DEFAULT '[]',
+  notices JSONB DEFAULT '[]',
+  admin_credentials JSONB DEFAULT '{}',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  phone TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  vip INT DEFAULT 1,
+  active BOOLEAN DEFAULT FALSE,
+  balance JSONB DEFAULT '{"video":0,"task":0,"refer":0,"bonus":0}',
+  refer_code TEXT UNIQUE,
+  referred_by TEXT,
+  team JSONB DEFAULT '[]',
+  join_date TEXT,
+  tasks_done_today INT DEFAULT 0,
+  videos_done_today INT DEFAULT 0,
+  withdraw_history JSONB DEFAULT '[]',
+  earn_history JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT,
+  user_name TEXT,
+  amount NUMERIC,
+  charge NUMERIC,
+  net NUMERIC,
+  method TEXT,
+  phone TEXT,
+  status TEXT DEFAULT 'pending',
+  date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS activation_requests (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT,
+  user_name TEXT,
+  phone TEXT,
+  txid TEXT,
+  amount NUMERIC,
+  status TEXT DEFAULT 'pending',
+  date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS vip_requests (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT,
+  user_name TEXT,
+  phone TEXT,
+  level INT,
+  plan_name TEXT,
+  price NUMERIC,
+  txid TEXT,
+  status TEXT DEFAULT 'pending',
+  date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE withdrawals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activation_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vip_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "allow_all_app_config" ON app_config FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_users" ON users FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_withdrawals" ON withdrawals FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_activation_requests" ON activation_requests FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_vip_requests" ON vip_requests FOR ALL TO anon USING (true) WITH CHECK (true);</pre>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex; flex-direction:column; gap:10px">
+      <button onclick="setupDone()" style="width:100%; padding:15px; background:linear-gradient(135deg,#22C55E,#16A34A); border:none; color:white; border-radius:14px; cursor:pointer; font-size:15px; font-weight:800; font-family:inherit; box-shadow:0 4px 20px rgba(34,197,94,0.4)">
+        ✅ হয়ে গেছে — অ্যাপ শুরু করুন
+      </button>
+      <button onclick="setupRetry()" style="width:100%; padding:13px; background:rgba(255,255,255,0.12); border:2px solid rgba(255,255,255,0.2); color:white; border-radius:14px; cursor:pointer; font-size:14px; font-weight:700; font-family:inherit">
+        🔄 আবার চেক করুন
+      </button>
+    </div>
+
+    <div style="text-align:center; margin-top:16px; font-size:11px; opacity:0.5; line-height:1.8">
+      এই সেটআপ মাত্র একবারই করতে হবে।<br>পরবর্তীতে সরাসরি অ্যাপ চালু হবে।
+    </div>
+  </div>
+</div>
+
+<script>
+const _SQL_CODE = `-- SentMoney Database Setup
+-- ⚡ এই ২ লাইন প্রথমে রান করুন (পরে Auto-Setup কাজ করবে):
+CREATE OR REPLACE FUNCTION exec_sql(sql text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS \$f\$ BEGIN EXECUTE sql; END; \$f\$;
+GRANT EXECUTE ON FUNCTION exec_sql(text) TO anon;
+-- বাকি Tables:
+CREATE TABLE IF NOT EXISTS app_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  settings JSONB DEFAULT '{}',
+  commissions JSONB DEFAULT '{}',
+  vip_plans JSONB DEFAULT '[]',
+  videos JSONB DEFAULT '[]',
+  tasks JSONB DEFAULT '[]',
+  notices JSONB DEFAULT '[]',
+  admin_credentials JSONB DEFAULT '{}',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  phone TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  vip INT DEFAULT 1,
+  active BOOLEAN DEFAULT FALSE,
+  balance JSONB DEFAULT '{"video":0,"task":0,"refer":0,"bonus":0}',
+  refer_code TEXT UNIQUE,
+  referred_by TEXT,
+  team JSONB DEFAULT '[]',
+  join_date TEXT,
+  tasks_done_today INT DEFAULT 0,
+  videos_done_today INT DEFAULT 0,
+  withdraw_history JSONB DEFAULT '[]',
+  earn_history JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT,
+  user_name TEXT,
+  amount NUMERIC,
+  charge NUMERIC,
+  net NUMERIC,
+  method TEXT,
+  phone TEXT,
+  status TEXT DEFAULT 'pending',
+  date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS activation_requests (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT,
+  user_name TEXT,
+  phone TEXT,
+  txid TEXT,
+  amount NUMERIC,
+  status TEXT DEFAULT 'pending',
+  date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS vip_requests (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT,
+  user_name TEXT,
+  phone TEXT,
+  level INT,
+  plan_name TEXT,
+  price NUMERIC,
+  txid TEXT,
+  status TEXT DEFAULT 'pending',
+  date TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE withdrawals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activation_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vip_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "allow_all_app_config" ON app_config FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_users" ON users FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_withdrawals" ON withdrawals FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_activation_requests" ON activation_requests FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "allow_all_vip_requests" ON vip_requests FOR ALL TO anon USING (true) WITH CHECK (true);`;
+
+function setupCopySql() {
+  navigator.clipboard.writeText(_SQL_CODE).then(() => {
+    const btn = document.getElementById('setup-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✅ কপি হয়েছে!';
+    btn.style.background = 'rgba(34,197,94,0.4)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = 'rgba(255,255,255,0.15)'; }, 2500);
+  }).catch(() => {
+    // fallback select
+    const pre = document.getElementById('setup-sql-pre');
+    const range = document.createRange();
+    range.selectNodeContents(pre);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    try { document.execCommand('copy'); } catch(e) {}
+    const btn = document.getElementById('setup-copy-btn');
+    btn.textContent = '✅ কপি হয়েছে!';
+    setTimeout(() => btn.textContent = '📋 কপি করুন', 2500);
+  });
+}
+
+function setupDownloadSql() {
+  const blob = new Blob([_SQL_CODE], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sentmoney_setup.sql';
+  a.click();
+}
+
+async function setupDone() {
+  const modal = document.getElementById('auto-setup-modal');
+  modal.style.display = 'none';
+  sessionStorage.removeItem('sm_uid');
+  await startApp();
+}
+
+async function setupRetry() {
+  document.getElementById('auto-setup-modal').style.display = 'none';
+  await startApp();
+}
+</script>
+</body>
+</html>
